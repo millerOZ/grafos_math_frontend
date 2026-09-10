@@ -1,36 +1,41 @@
-/node_modules
-/dist
-/build
-/public
-/src
-/test
-/docs
-/examples
-/scripts
-/tools
-/tests
-/tmp
-/vendor
-/webpack.config.js
-/vite.config.js
-/tsconfig.json
-/tsconfig.node.json
-/tsconfig.app.json
-/tsconfig.spec.json
-/tsconfig.base.json
-/tsconfig.app.json
-/tsconfig.spec.json
-/tsconfig.base.json
-/tsconfig.app.json
-/tsconfig.spec.json
-/tsconfig.base.json
-/tsconfig.app.json
-/tsconfig.spec.json
-/tsconfig.base.json
-/tsconfig.app.json
-/tsconfig.spec.json
-/tsconfig.base.json
-/tsconfig.app.json
-/tsconfig.spec.json
-/tsconfig.base.json
+# Dependencias
+node_modules/
+.pnp
+.pnp.js
 
+# Producción / build
+dist/
+build/
+.next/
+out/
+
+# Variables de entorno
+.env
+.env.local
+.env.*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Cache
+.cache/
+.vite/
+.turbo/
+.eslintcache
+
+# Testing / coverage
+coverage/
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# Lockfiles de otros gestores (deja solo el que uses)
+# package-lock.json
+# yarn.lock
