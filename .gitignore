@@ -1,20 +1,22 @@
 # Dependencias
-node_modules/*
+node_modules/
 .pnp
 .pnp.js
 
 # Producción / build
 dist/
+dist-ssr/
 build/
 .next/
 out/
 
 # Variables de entorno
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
 
 # Logs
+logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -26,6 +28,7 @@ pnpm-debug.log*
 .vite/
 .turbo/
 .eslintcache
+*.local
 
 # Testing / coverage
 coverage/
@@ -34,7 +37,11 @@ coverage/
 .DS_Store
 .vscode/
 .idea/
-*.swp
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
 # Lockfiles de otros gestores (deja solo el que uses)
 # package-lock.json
