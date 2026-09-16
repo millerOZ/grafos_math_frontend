@@ -5,9 +5,9 @@ import * as THREE from 'three';
 import type { Capa, Grafo, Nodo } from '../data/mockGraph';
 import { calcularImpacto } from '../lib/impact';
 
-const CAPA_X: Record<Capa, number> = { proveedor: -11, insumo: 0, servicio: 11 };
+const CAPA_X: Record<Capa, number> = { proveedor: -11, insumo: 0, producto: 11 };
 const CAPA_COLOR: Record<Capa, string> = {
-  servicio: '#4f9cf9',
+  producto: '#4f9cf9',
   insumo: '#f2b84b',
   proveedor: '#6bd18b',
 };

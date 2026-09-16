@@ -7,7 +7,7 @@ import { calcularImpacto } from './lib/impact';
 type Vista = 'inicio' | 'visualizacion';
 
 const LEYENDA = [
-  { capa: 'servicio', color: '#3478f6', label: 'Servicio' },
+  { capa: 'producto', color: '#3478f6', label: 'Producto' },
   { capa: 'insumo', color: '#e3a52f', label: 'Insumo / infraestructura' },
   { capa: 'proveedor', color: '#36a269', label: 'Proveedor' },
   { capa: 'afectado', color: '#e05252', label: 'Afectado por el fallo' },

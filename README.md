@@ -13,6 +13,14 @@ AbastecePyme fabrica productos sencillos y depende de materias primas, proveedor
 
 Datos sintéticos de proveedores, insumos, productos y relaciones de dependencia. No incluye inventario real, compras, facturación ni pronósticos. Cada relación debe tener una interpretación clara: “A requiere B” o “B habilita A”; documenten la dirección elegida.
 
+## Modelo del grafo mock
+
+`MOCK_GRAFO` conserva la estructura `{ nodos, aristas }` usada por la interfaz. Cada nodo tiene `id` único, `nombre`, `capa` (`producto`, `insumo` o `proveedor`) y una `categoria` opcional. Cada arista tiene `id`, `origen`, `destino` y el tipo `REQUIERE`.
+
+La dirección elegida es `A -> B = “A requiere B”`. Por ejemplo, `PRD-AREPA -> PROC-MEZCLA` significa “para producir Arepa paisa se necesita el proceso de mezclado y amasado”. Esta representación permite recorrer las aristas en sentido inverso para identificar qué productos se afectan cuando falla un proveedor, insumo o proceso.
+
+Los datos son sintéticos y están contextualizados en Medellín y otras regiones de Colombia. Los procesos internos se representan en la capa `insumo` para conservar las tres columnas del grafo actual; su categoría los distingue como `Proceso interno`.
+
 ## Feature 1 — Catálogo de dependencias
 
 ### Valor de negocio
@@ -78,4 +86,3 @@ El cliente comprende qué falla, qué se afecta y cómo debería organizar produ
 ## Criterio de éxito del cliente
 
 Durante la demo se carga una dependencia, se simula una indisponibilidad y se identifican consecuencias. Después se muestra un orden válido o una alerta clara de ciclo.
-
