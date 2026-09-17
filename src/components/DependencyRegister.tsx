@@ -108,6 +108,7 @@ export default function DependencyRegister({
           <label htmlFor="dependency-origin">Elemento que requiere</label>
           <select
             id="dependency-origin"
+            className={origen ? `layer-select ${origen.capa}` : 'layer-select'}
             value={origenId}
             onChange={(event) => { setOrigenId(event.target.value); setDestinoId(''); setMensaje(''); }}
           >
@@ -118,6 +119,7 @@ export default function DependencyRegister({
           <label htmlFor="dependency-target">Elemento requerido</label>
           <select
             id="dependency-target"
+            className={destinoId ? `layer-select ${grafo.nodos.find((nodo) => nodo.id === destinoId)?.capa}` : 'layer-select'}
             value={destinoId}
             disabled={!origen}
             onChange={(event) => { setDestinoId(event.target.value); setMensaje(''); }}
