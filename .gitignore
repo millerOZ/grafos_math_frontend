@@ -44,5 +44,5 @@ coverage/
 *.sw?
 
 # Lockfiles de otros gestores (deja solo el que uses)
-# package-lock.json
+package-lock.json
 # yarn.lock
