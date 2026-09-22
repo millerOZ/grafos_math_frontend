@@ -14,6 +14,53 @@ const CAPA_COLOR: Record<Capa, string> = {
 const AFECTADO = '#ff4d4d';
 const APAGADO = '#39414b';
 
+const SILUETA_VALLE = new THREE.Shape([
+  new THREE.Vector2(-32, -13),
+  new THREE.Vector2(-28, -7),
+  new THREE.Vector2(-23, -9),
+  new THREE.Vector2(-17, -3),
+  new THREE.Vector2(-11, -8),
+  new THREE.Vector2(-4, -1),
+  new THREE.Vector2(2, -7),
+  new THREE.Vector2(8, -2),
+  new THREE.Vector2(14, -8),
+  new THREE.Vector2(20, -4),
+  new THREE.Vector2(27, -8),
+  new THREE.Vector2(32, -5),
+  new THREE.Vector2(32, -16),
+  new THREE.Vector2(-32, -16),
+]);
+
+const EDIFICIOS = [
+  [-18, 3.5], [-15, 2.3], [-12, 4.8], [-8, 2.8], [-5, 5.7],
+  [-1, 3.1], [3, 6.5], [7, 3.8], [11, 5.2], [15, 2.7], [19, 4.2],
+] as const;
+
+function MedellinBackdrop() {
+  return (
+    <group position={[0, 0, -12]}>
+      <mesh position={[0, 0, -1]}>
+        <planeGeometry args={[70, 40]} />
+        <meshBasicMaterial color="#07151f" />
+      </mesh>
+      <mesh position={[0, 0, 0]}>
+        <shapeGeometry args={[SILUETA_VALLE]} />
+        <meshBasicMaterial color="#102b35" />
+      </mesh>
+      {EDIFICIOS.map(([x, altura]) => (
+        <mesh key={x} position={[x, -9 + altura / 2, 0.4]}>
+          <boxGeometry args={[2.2, altura, 1]} />
+          <meshBasicMaterial color="#183b43" />
+        </mesh>
+      ))}
+      <mesh position={[0, -12.2, 0.8]}>
+        <planeGeometry args={[70, 0.16]} />
+        <meshBasicMaterial color="#d89b4a" />
+      </mesh>
+    </group>
+  );
+}
+
 function calcularLayout(nodos: Nodo[]) {
   const pos = new Map<string, THREE.Vector3>();
   (Object.keys(CAPA_X) as Capa[]).forEach((capa) => {
@@ -93,7 +140,9 @@ export default function Graph3D({
 
   return (
     <Canvas camera={{ position: [0, 0, 44], fov: 50 }} onPointerMissed={() => onSelect(null)}>
-      <color attach="background" args={['#0b0e13']} />
+      <color attach="background" args={['#07151f']} />
+      <fog attach="fog" args={['#07151f', 38, 65]} />
+      <MedellinBackdrop />
       <ambientLight intensity={0.7} />
       <directionalLight position={[12, 20, 15]} intensity={1.2} />
       <OrbitControls enableDamping makeDefault />
