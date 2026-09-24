@@ -1,26 +1,6 @@
-import { useMemo, useState, type FormEvent } from 'react';
-import type { Arista, Capa, Grafo, Nodo } from '../data/mockGraph';
-
-type ReglaDependencia = {
-  origen: Capa;
-  destino: Capa;
-  texto: string;
-};
-
-const REGLAS: ReglaDependencia[] = [
-  { origen: 'producto', destino: 'insumo', texto: 'Producto requiere insumo / infraestructura' },
-  { origen: 'insumo', destino: 'proveedor', texto: 'Insumo / infraestructura requiere proveedor' },
-];
-
-const ETIQUETAS: Record<Capa, string> = {
-  producto: 'Producto',
-  insumo: 'Insumo / infraestructura',
-  proveedor: 'Proveedor',
-};
-
-function reglaPermitida(origen: Nodo, destino: Nodo) {
-  return REGLAS.some((regla) => regla.origen === origen.capa && regla.destino === destino.capa);
-}
+import type { Arista, Grafo } from '../features/graph/types';
+import { ETIQUETAS_CAPA, REGLAS_DEPENDENCIA } from '../features/graph/domain/dependencyRules';
+import { useDependencyRegistration } from '../features/graph/hooks/useDependencyRegistration';
 
 export default function DependencyRegister({
   grafo,
@@ -29,50 +9,10 @@ export default function DependencyRegister({
   grafo: Grafo;
   onAdd: (arista: Arista) => void;
 }) {
-  const [origenId, setOrigenId] = useState('');
-  const [destinoId, setDestinoId] = useState('');
-  const [mensaje, setMensaje] = useState('');
-
-  const origenes = useMemo(
-    () => grafo.nodos.filter((nodo) => nodo.capa === 'producto' || nodo.capa === 'insumo'),
-    [grafo.nodos],
-  );
-  const origen = grafo.nodos.find((nodo) => nodo.id === origenId);
-  const destinos = useMemo(() => {
-    if (!origen) return [];
-    const destinoCapa = origen.capa === 'producto' ? 'insumo' : 'proveedor';
-    return grafo.nodos.filter((nodo) => nodo.capa === destinoCapa);
-  }, [grafo.nodos, origen]);
-
-  const relacionesValidas = grafo.aristas.filter((arista) => {
-    const nodoOrigen = grafo.nodos.find((nodo) => nodo.id === arista.origen);
-    const nodoDestino = grafo.nodos.find((nodo) => nodo.id === arista.destino);
-    return nodoOrigen && nodoDestino && reglaPermitida(nodoOrigen, nodoDestino);
-  });
-
-  const registrar = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const nodoOrigen = grafo.nodos.find((nodo) => nodo.id === origenId);
-    const nodoDestino = grafo.nodos.find((nodo) => nodo.id === destinoId);
-
-    if (!nodoOrigen || !nodoDestino || !reglaPermitida(nodoOrigen, nodoDestino)) {
-      setMensaje('Selecciona una combinación válida de elementos.');
-      return;
-    }
-    if (grafo.aristas.some((arista) => arista.origen === origenId && arista.destino === destinoId)) {
-      setMensaje('Esta dependencia ya está registrada.');
-      return;
-    }
-
-    onAdd({
-      id: `e${String(grafo.aristas.length + 1).padStart(2, '0')}`,
-      origen: origenId,
-      destino: destinoId,
-      tipo: 'REQUIERE',
-    });
-    setDestinoId('');
-    setMensaje('Dependencia registrada correctamente.');
-  };
+  const {
+    originId, targetId, message, origin, origins, targets, validEdges,
+    submit, setOriginId, setTargetId,
+  } = useDependencyRegistration(grafo, onAdd);
 
   return (
     <main className="register-view">
@@ -84,13 +24,13 @@ export default function DependencyRegister({
           capas compatibles para conservar la estructura del grafo.
         </p>
         <div className="rule-list" aria-label="Reglas de conexión">
-          {REGLAS.map((regla) => (
+          {REGLAS_DEPENDENCIA.map((regla) => (
             <div className="rule-item" key={`${regla.origen}-${regla.destino}`}>
               <span className={`layer-dot ${regla.origen}`} />
-              <span>{ETIQUETAS[regla.origen]}</span>
+              <span>{ETIQUETAS_CAPA[regla.origen]}</span>
               <span className="rule-arrow" aria-hidden="true">→</span>
               <span className={`layer-dot ${regla.destino}`} />
-              <span>{ETIQUETAS[regla.destino]}</span>
+              <span>{ETIQUETAS_CAPA[regla.destino]}</span>
             </div>
           ))}
         </div>
@@ -102,36 +42,36 @@ export default function DependencyRegister({
             <p className="panel-kicker">Nueva dependencia</p>
             <h2 id="register-title">Conectar elementos</h2>
           </div>
-          <span className="counter-badge">{relacionesValidas.length} registradas</span>
+          <span className="counter-badge">{validEdges.length} registradas</span>
         </div>
-        <form onSubmit={registrar}>
+        <form onSubmit={submit}>
           <label htmlFor="dependency-origin">Elemento que requiere</label>
           <select
             id="dependency-origin"
-            className={origen ? `layer-select ${origen.capa}` : 'layer-select'}
-            value={origenId}
-            onChange={(event) => { setOrigenId(event.target.value); setDestinoId(''); setMensaje(''); }}
+            className={origin ? `layer-select ${origin.capa}` : 'layer-select'}
+            value={originId}
+            onChange={(event) => setOriginId(event.target.value)}
           >
             <option value="">Selecciona el origen</option>
-            {origenes.map((nodo) => <option value={nodo.id} key={nodo.id}>{nodo.nombre}</option>)}
+            {origins.map((nodo) => <option value={nodo.id} key={nodo.id}>{nodo.nombre}</option>)}
           </select>
 
           <label htmlFor="dependency-target">Elemento requerido</label>
           <select
             id="dependency-target"
-            className={destinoId ? `layer-select ${grafo.nodos.find((nodo) => nodo.id === destinoId)?.capa}` : 'layer-select'}
-            value={destinoId}
-            disabled={!origen}
-            onChange={(event) => { setDestinoId(event.target.value); setMensaje(''); }}
+            className={targetId ? `layer-select ${grafo.nodos.find((nodo) => nodo.id === targetId)?.capa}` : 'layer-select'}
+            value={targetId}
+            disabled={!origin}
+            onChange={(event) => setTargetId(event.target.value)}
           >
-            <option value="">{origen ? 'Selecciona el destino' : 'Primero elige un origen'}</option>
-            {destinos.map((nodo) => <option value={nodo.id} key={nodo.id}>{nodo.nombre}</option>)}
+            <option value="">{origin ? 'Selecciona el destino' : 'Primero elige un origen'}</option>
+            {targets.map((nodo) => <option value={nodo.id} key={nodo.id}>{nodo.nombre}</option>)}
           </select>
 
           <button className="primary-button register-submit" type="submit">
             Registrar dependencia <span aria-hidden="true">→</span>
           </button>
-          {mensaje && <p className="form-message" role="status">{mensaje}</p>}
+          {message && <p className="form-message" role="status">{message}</p>}
         </form>
       </section>
 
@@ -141,10 +81,10 @@ export default function DependencyRegister({
             <p className="panel-kicker">Relaciones activas</p>
             <h2 id="dependency-list-title">Dependencias registradas</h2>
           </div>
-          <span className="list-count">{relacionesValidas.length}</span>
+          <span className="list-count">{validEdges.length}</span>
         </div>
         <div className="dependency-table">
-          {relacionesValidas.map((arista) => {
+          {validEdges.map((arista) => {
             const nodoOrigen = grafo.nodos.find((nodo) => nodo.id === arista.origen)!;
             const nodoDestino = grafo.nodos.find((nodo) => nodo.id === arista.destino)!;
             return (

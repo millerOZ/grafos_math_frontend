@@ -2,8 +2,8 @@ import { useMemo, useRef, useLayoutEffect, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Line, Text, Billboard, OrbitControls, Sphere } from '@react-three/drei';
 import * as THREE from 'three';
-import type { Capa, Grafo, Nodo } from '../data/mockGraph';
-import { calcularImpacto } from '../lib/impact';
+import type { Capa, Grafo, Nodo } from '../features/graph/types';
+import { useGraphImpact } from '../features/graph/hooks/useGraphImpact';
 
 const CAPA_X: Record<Capa, number> = { proveedor: -11, insumo: 0, producto: 11 };
 const CAPA_COLOR: Record<Capa, string> = {
@@ -133,10 +133,7 @@ export default function Graph3D({
   grafo: Grafo; seleccionado: string | null; onSelect: (id: string | null) => void;
 }) {
   const layout = useMemo(() => calcularLayout(grafo.nodos), [grafo.nodos]);
-  const afectados = useMemo(
-    () => (seleccionado ? calcularImpacto(grafo, seleccionado) : null),
-    [grafo, seleccionado],
-  );
+  const afectados = useGraphImpact(grafo, seleccionado);
 
   return (
     <Canvas camera={{ position: [0, 0, 44], fov: 50 }} onPointerMissed={() => onSelect(null)}>
