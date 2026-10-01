@@ -2,7 +2,7 @@ import type { Arista, Nodo } from "../types";
 
 //const API_URL = "http://127.0.0.1:8000";
 const API_URL =
-  "https://2abd-2800-e2-1d80-181f-11f0-7ab0-50bc-a429.ngrok-free.app";
+  "https://d8d0-2800-e2-1d80-181f-11f0-7ab0-50bc-a429.ngrok-free.app";
 async function getNodes(endpoint: string): Promise<any[]>{
   const response = await fetch(`${API_URL}/${endpoint}`);
 
