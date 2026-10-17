@@ -41,11 +41,12 @@ function ConnectingLine({ start, end }: {
   ];
   const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
 
-  return (
-    <line geometry={lineGeometry}>
-      <lineBasicMaterial color="#C4A577" opacity={0.3} transparent />
-    </line>
+  const line = new THREE.Line(
+    lineGeometry,
+    new THREE.LineBasicMaterial({ color: '#C4A577', opacity: 0.3, transparent: true }),
   );
+
+  return <primitive object={line} />;
 }
 
 export function FloatingElements3D() {
