@@ -1,34 +1,69 @@
+import { Suspense } from 'react';
+import { FloatingElements3D } from './FloatingElements3D';
+
 interface HomePageProps {
   onOpenVisualization: () => void;
 }
 
 export function HomePage({ onOpenVisualization }: HomePageProps) {
   return (
-    <main className="home-content">
-      <section className="hero-copy">
-        <p className="eyebrow">Explora las conexiones</p>
-        <h1>Comprende el mundo<br /><em>a través de sus grafos.</em></h1>
-        <p className="hero-description">
-          Visualiza redes de dependencia, identifica relaciones y descubre qué elementos
-          se ven afectados cuando algo falla.
+    <main className="home-content-new">
+      <div className="hero-section">
+        <div className="hero-3d-background">
+          <Suspense fallback={null}>
+            <FloatingElements3D />
+          </Suspense>
+        </div>
+
+        <div className="hero-content">
+          <h1 className="hero-title">
+            Cada producto cuenta<br />
+            una historia de conexiones
+          </h1>
+
+          <p className="hero-subtitle">
+            Desde el grano de café hasta tu taza. Desde la harina hasta el pan recién horneado.
+            Cada elemento en tu negocio está conectado en una red de dependencias.
+          </p>
+
+          <button className="cta-button" type="button" onClick={onOpenVisualization}>
+            Explorar la red
+          </button>
+        </div>
+      </div>
+
+      <section className="value-proposition">
+        <div className="value-card">
+          <h2>Trazabilidad completa</h2>
+          <p>
+            Rastrea cada insumo desde su origen. Conoce qué proveedores impactan
+            tus productos y cómo una interrupción afecta tu inventario.
+          </p>
+        </div>
+
+        <div className="value-card">
+          <h2>Decisiones informadas</h2>
+          <p>
+            Identifica dependencias críticas antes de que se conviertan en problemas.
+            Optimiza tu cadena de suministro visualizando el panorama completo.
+          </p>
+        </div>
+
+        <div className="value-card">
+          <h2>Relaciones visibles</h2>
+          <p>
+            Transforma datos complejos en redes claras. Descubre patrones ocultos
+            y entiende cómo cada pieza encaja en el sistema.
+          </p>
+        </div>
+      </section>
+
+      <div className="context-note">
+        <p>
+          Esta herramienta te permite mapear y visualizar redes de dependencia
+          en cualquier contexto: cadenas de suministro, infraestructura técnica,
+          o relaciones entre componentes de un sistema.
         </p>
-        <button className="primary-button" type="button" onClick={onOpenVisualization}>
-          Abrir visualización <span aria-hidden="true">→</span>
-        </button>
-      </section>
-      <section className="home-preview" aria-label="Vista previa del grafo">
-        <div className="preview-grid" aria-hidden="true" />
-        <div className="preview-line line-one" aria-hidden="true" />
-        <div className="preview-line line-two" aria-hidden="true" />
-        <div className="preview-line line-three" aria-hidden="true" />
-        <div className="preview-node node-a">A</div><div className="preview-node node-b">B</div>
-        <div className="preview-node node-c">C</div><div className="preview-node node-d">D</div>
-        <p>Red de dependencias</p>
-      </section>
-      <div className="feature-row">
-        <div><strong>01</strong><span>Explora</span><p>Recorre cada nodo y sus conexiones.</p></div>
-        <div><strong>02</strong><span>Analiza</span><p>Selecciona un elemento para ver su impacto.</p></div>
-        <div><strong>03</strong><span>Comprende</span><p>Encuentra patrones en redes complejas.</p></div>
       </div>
     </main>
   );
