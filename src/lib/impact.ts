@@ -14,3 +14,23 @@ export function calcularImpacto(grafo: Grafo, id: string): Set<string> {
   }
   return afectados;
 }
+
+/** Igual que calcularImpacto, pero registra en qué nivel (número de saltos
+ * desde `id`) se contagia cada nodo, para animar la onda de contagio por etapas. */
+export function calcularNiveles(grafo: Grafo, id: string): Map<string, number> {
+  const niveles = new Map<string, number>([[id, 0]]);
+  let frontera = [id];
+  let nivel = 0;
+  while (frontera.length > 0) {
+    nivel += 1;
+    const siguiente: string[] = [];
+    for (const a of grafo.aristas) {
+      if (frontera.includes(a.destino) && !niveles.has(a.origen)) {
+        niveles.set(a.origen, nivel);
+        siguiente.push(a.origen);
+      }
+    }
+    frontera = siguiente;
+  }
+  return niveles;
+}
