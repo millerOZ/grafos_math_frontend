@@ -9,6 +9,15 @@ export function HomePage({ onOpenVisualization }: HomePageProps) {
   return (
     <main className="home-content-new">
       <div className="hero-section">
+        <div className="hero-photo-wrap" aria-hidden="true">
+          <img
+            className="hero-photo"
+            src="/images/home-buffet.jpg"
+            alt=""
+          />
+          <div className="hero-photo-veil" />
+        </div>
+
         <div className="hero-3d-background">
           <Suspense fallback={null}>
             <FloatingElements3D />
