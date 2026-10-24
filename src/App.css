@@ -242,3 +242,115 @@ h1 em { color: #a7a7a1; font-style: normal; }
 .register-card form { display: flex; flex-direction: column; margin-top: 31px; }.register-card label { margin-bottom: 8px; color: #686963; font-size: 11px; font-weight: 600; }.register-card select { width: 100%; margin-bottom: 23px; padding: 13px 12px; border: 1px solid #deded9; border-radius: 0; outline: 0; background: #fff; color: #20211f; font: inherit; font-size: 13px; cursor: pointer; }.register-card select:focus { border-color: #a16d35; }.register-card select:disabled { background: #f7f7f5; color: #aaa; cursor: not-allowed; }.register-card .layer-select { border-left: 4px solid #deded9; }.register-card .layer-select.producto { border-left-color: #3478f6; color: #2868d8; }.register-card .layer-select.insumo { border-left-color: #e3a52f; color: #a87510; }.register-card .layer-select.proveedor { border-left-color: #36a269; color: #25804f; }.register-submit { justify-content: space-between; width: 100%; margin-top: 5px; }.form-message { margin: 16px 0 0; color: #71806f; font-size: 12px; }.dependency-list { grid-column: 1 / -1; border-top: 1px solid #deded9; padding-top: 28px; }.list-count { display: grid; place-items: center; width: 29px; height: 29px; border-radius: 50%; background: #151515; color: white; font-size: 11px; }.dependency-table { margin-top: 20px; border-top: 1px solid #e8e8e4; }.dependency-row { display: grid; grid-template-columns: 8px minmax(140px, 1fr) 30px 8px minmax(140px, 1fr); align-items: center; gap: 9px; min-height: 50px; border-bottom: 1px solid #e8e8e4; color: #5e5f5a; font-size: 12px; }.row-arrow { text-align: center; }
 @media (max-width: 850px) { .register-view { grid-template-columns: 1fr; gap: 55px; padding: 70px 22px 50px; }.register-intro { max-width: 620px; }.register-card { width: 100%; }.dependency-list { grid-column: auto; } }
 @media (max-width: 500px) { .register-card { padding: 25px 20px; }.register-card-heading { display: block; }.counter-badge { display: inline-block; margin-top: 16px; }.dependency-row { grid-template-columns: 8px minmax(90px, 1fr) 20px 8px minmax(90px, 1fr); gap: 6px; font-size: 11px; }.rule-item { flex-wrap: wrap; } }
+
+.visualization-view {
+  grid-template-columns: 1fr minmax(280px, 380px);
+}
+
+.impact-card {
+  padding: 0;
+  border: 0;
+  background: #f6efe4;
+  box-shadow: inset 4px 0 0 #c45c4a;
+}
+
+.impact-head {
+  padding: 22px 20px 0;
+}
+
+.impact-card .impact-name {
+  margin: 0 0 8px;
+  color: #2a1c14;
+  font-family: Fraunces, "Iowan Old Style", Palatino, Georgia, serif;
+  font-size: 26px;
+  font-weight: 560;
+  font-optical-sizing: auto;
+  letter-spacing: -0.03em;
+  line-height: 1.12;
+}
+
+.impact-card .impact-kind {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: #6b5748;
+  font-size: 13px;
+}
+
+.impact-stitch {
+  display: block;
+  width: 3px;
+  height: 14px;
+  flex: 0 0 auto;
+}
+
+.impact-card .impact-consequence {
+  margin: 16px 20px 0;
+  padding-top: 14px;
+  border-top: 1px dashed #d4c4ae;
+  color: #5c4a3c;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.impact-card .impact-list {
+  list-style: none;
+  max-height: 240px;
+  margin: 6px 0 0;
+  padding: 4px 20px 16px;
+  overflow: auto;
+}
+
+.impact-list li {
+  display: grid;
+  grid-template-columns: 3px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  border-bottom: 1px solid rgba(42, 28, 20, 0.08);
+  color: #2a1c14;
+  font-size: 13.5px;
+}
+
+.impact-list li:last-child {
+  border-bottom: 0;
+}
+
+.impact-item-name {
+  min-width: 0;
+}
+
+.impact-item-capa {
+  color: #8a7464;
+  font-size: 12px;
+}
+
+.empty-selection {
+  align-items: flex-start;
+  min-height: 88px;
+  padding: 18px 4px 8px;
+  border-top: 1px dashed #d8d4cc;
+  color: #6b5748;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.empty-selection p {
+  max-width: 26ch;
+}
+
+@keyframes impact-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+.impact-card {
+  animation: impact-in 0.32s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .impact-card {
+    animation: none;
+  }
+}

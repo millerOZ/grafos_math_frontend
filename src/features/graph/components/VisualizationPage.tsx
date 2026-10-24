@@ -1,5 +1,5 @@
 import { useGraphImpact } from "../hooks/useGraphImpact";
-import type { Grafo } from "../types";
+import type { Capa, Grafo, Nodo } from "../types";
 import Graph3D from "../../../components/Graph3D";
 
 const LEGEND = [
@@ -8,6 +8,27 @@ const LEGEND = [
   { layer: "proveedor", color: "#36a269", label: "Proveedor" },
   { layer: "afectado", color: "#e05252", label: "Afectado por el fallo" },
 ];
+
+const CAPA_META: Record<Capa, { color: string; label: string }> = {
+  producto: { color: "#3478f6", label: "Producto" },
+  insumo: { color: "#e3a52f", label: "Insumo" },
+  proveedor: { color: "#36a269", label: "Proveedor" },
+};
+
+function textoConsecuencia(capa: Capa, cantidad: number) {
+  if (cantidad === 0) {
+    return "Nadie más en la red depende de esto. El fallo se queda aquí.";
+  }
+  if (capa === "proveedor") {
+    return cantidad === 1
+      ? "Si este proveedor se detiene, queda sin abastecer:"
+      : "Si este proveedor se detiene, quedan sin abastecer:";
+  }
+  if (capa === "insumo") {
+    return "Si este insumo falta, no se puede elaborar:";
+  }
+  return "Si sale de servicio, también se ve afectado:";
+}
 
 interface VisualizationPageProps {
   graph: Grafo;
@@ -59,29 +80,48 @@ export function VisualizationPage({
           ))}
         </div>
         {selectedNode ? (
-          <div className="impact-card">
-            <p className="panel-label">Nodo seleccionado</p>
-            <h3>{selectedNode.nombre}</h3>
-            <p>
-              Si falla, afecta a <strong>{impactedNodes.length}</strong>{" "}
-              elementos.
-            </p>
-            <ul>
-              {impactedNodes.map((node) => (
-                <li key={node.id}>{node.nombre}</li>
-              ))}
-            </ul>
-          </div>
+          <ImpactTicket node={selectedNode} afectados={impactedNodes} />
         ) : (
           <div className="empty-selection">
-            <span aria-hidden="true">＋</span>
-            <p>Selecciona un nodo para comenzar</p>
+            <p>Toca un punto de la red para ver qué se cae con él.</p>
           </div>
         )}
         <button className="back-button" type="button" onClick={onBack}>
-          ← Volver al inicio
+          Volver al inicio
         </button>
       </aside>
     </main>
+  );
+}
+
+function ImpactTicket({ node, afectados }: { node: Nodo; afectados: Nodo[] }) {
+  const meta = CAPA_META[node.capa];
+  const consecuencia = textoConsecuencia(node.capa, afectados.length);
+
+  return (
+    <article className="impact-card" aria-live="polite">
+      <header className="impact-head">
+        <h3 className="impact-name">{node.nombre}</h3>
+        <p className="impact-kind">
+          <span className="impact-stitch" style={{ background: meta.color }} />
+          {meta.label}
+        </p>
+      </header>
+      <p className="impact-consequence">{consecuencia}</p>
+      {afectados.length > 0 ? (
+        <ul className="impact-list">
+          {afectados.map((item) => (
+            <li key={item.id}>
+              <span
+                className="impact-stitch"
+                style={{ background: CAPA_META[item.capa].color }}
+              />
+              <span className="impact-item-name">{item.nombre}</span>
+              <span className="impact-item-capa">{CAPA_META[item.capa].label}</span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </article>
   );
 }
