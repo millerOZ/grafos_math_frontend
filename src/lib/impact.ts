@@ -1,4 +1,4 @@
-import type { Grafo } from '../data/mockGraph';
+import type { Grafo } from '../features/graph/types';
 
 export function calcularImpacto(grafo: Grafo, id: string): Set<string> {
   const afectados = new Set<string>([id]);

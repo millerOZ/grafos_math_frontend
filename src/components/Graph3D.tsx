@@ -2,8 +2,22 @@ import { useMemo, useRef, useLayoutEffect, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Line, Text, Billboard, OrbitControls, Sphere } from '@react-three/drei';
 import * as THREE from 'three';
-import type { Capa, Grafo, Nodo } from '../data/mockGraph';
-import { calcularImpacto } from '../lib/impact';
+import type { Capa, Grafo, Nodo } from '../features/graph/types';
+import { useGraphImpact } from '../features/graph/hooks/useGraphImpact';
+
+/**
+ * Acercar / alejar el grafo (cámbialo aquí):
+ * - `posicion[2]`: menor Z = cámara más cerca (prueba 24–32; por debajo de ~22 recorta nodos).
+ * - `minDistance` / `maxDistance`: límites del zoom con la rueda del mouse.
+ * - `CAPA_X` más abajo: valores más chicos juntan las tres columnas.
+ */
+const CAMARA = {
+  posicion: [0, 0, 30] as [number, number, number],
+  fov: 48,
+  minDistance: 8,
+  maxDistance: 48,
+  zoomSpeed: 0.85,
+};
 
 const CAPA_X: Record<Capa, number> = { proveedor: -11, insumo: 0, producto: 11 };
 const CAPA_COLOR: Record<Capa, string> = {
@@ -133,19 +147,23 @@ export default function Graph3D({
   grafo: Grafo; seleccionado: string | null; onSelect: (id: string | null) => void;
 }) {
   const layout = useMemo(() => calcularLayout(grafo.nodos), [grafo.nodos]);
-  const afectados = useMemo(
-    () => (seleccionado ? calcularImpacto(grafo, seleccionado) : null),
-    [grafo, seleccionado],
-  );
+  const afectados = useGraphImpact(grafo, seleccionado);
 
   return (
-    <Canvas camera={{ position: [0, 0, 44], fov: 50 }} onPointerMissed={() => onSelect(null)}>
+    <Canvas camera={{ position: CAMARA.posicion, fov: CAMARA.fov }} onPointerMissed={() => onSelect(null)}>
       <color attach="background" args={['#07151f']} />
-      <fog attach="fog" args={['#07151f', 38, 65]} />
+      <fog attach="fog" args={['#07151f', 28, 55]} />
       <MedellinBackdrop />
       <ambientLight intensity={0.7} />
       <directionalLight position={[12, 20, 15]} intensity={1.2} />
-      <OrbitControls enableDamping makeDefault />
+      <OrbitControls
+        makeDefault
+        enableDamping
+        enableZoom
+        zoomSpeed={CAMARA.zoomSpeed}
+        minDistance={CAMARA.minDistance}
+        maxDistance={CAMARA.maxDistance}
+      />
 
       {grafo.aristas.map((ar) => {
         const a = layout.get(ar.origen)!;

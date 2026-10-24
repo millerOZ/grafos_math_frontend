@@ -1,26 +1,8 @@
-export type Capa = 'producto' | 'insumo' | 'proveedor';
-
-export interface Nodo {
-  id: string;
-  nombre: string;
-  capa: Capa;
-  categoria?: string;
-}
-
-export interface Arista {
-  id: string;
-  origen: string;   // elemento que requiere
-  destino: string;  // elemento requerido
-  tipo: 'REQUIERE';
-}
-
-export interface Grafo {
-  nodos: Nodo[];
-  aristas: Arista[];
-}
+export type { Arista, Capa, Grafo, Nodo } from '../features/graph/types';
+import type { Grafo } from '../features/graph/types';
 
 export const MOCK_GRAFO: Grafo = {
-  nodos : [
+ /*  nodos : [
     {
       id: "PRD-PAN",
       nombre: "Pan tajado",
@@ -191,5 +173,7 @@ export const MOCK_GRAFO: Grafo = {
       destino: "PRV-QUIM",
       tipo: "REQUIERE",
     },
-  ],
+  ], */
+  nodos: [],
+  aristas: []
 };
