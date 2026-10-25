@@ -95,10 +95,13 @@ function App() {
           type="button"
           onClick={() => openView("inicio")}
         >
-          <span className="brand-mark" aria-hidden="true">
-            ∿
-          </span>
-          <span>Grafos</span>
+          <img
+            className="brand-mark"
+            src="/images/logo.png"
+            alt=""
+            aria-hidden="true"
+          />
+          <span>Bake & Brew</span>
         </button>
         <nav className="main-nav" aria-label="Navegación principal">
           <button

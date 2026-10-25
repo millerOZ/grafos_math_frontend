@@ -275,8 +275,10 @@ export default function Graph3D({
       />
 
       {grafo.aristas.map((ar) => {
-        const a = layout.get(ar.origen)!;
-        const b = layout.get(ar.destino)!;
+        const a = layout.get(ar.origen);
+        const b = layout.get(ar.destino);
+        // Si la arista llega antes que sus nodos (carga asíncrona), no se dibuja todavía.
+        if (!a || !b) return null;
         const colorNormal = afectados ? APAGADO : '#4a5560';
         let nivelArista: number | undefined;
         if (niveles && afectados?.has(ar.origen) && afectados?.has(ar.destino)) {
