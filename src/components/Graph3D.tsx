@@ -4,7 +4,6 @@ import { Line, Text, Billboard, OrbitControls, Sphere } from '@react-three/drei'
 import * as THREE from 'three';
 import type { Line2 } from 'three-stdlib';
 import type { Capa, Grafo, Nodo } from '../features/graph/types';
-import { useGraphImpactLevels } from '../features/graph/hooks/useGraphImpactLevels';
 
 /**
  * Acercar / alejar el grafo (cámbialo aquí):
@@ -247,12 +246,15 @@ function Nodo3D({
 }
 
 export default function Graph3D({
-  grafo, seleccionado, onSelect,
+  grafo, seleccionado, niveles, onSelect,
 }: {
-  grafo: Grafo; seleccionado: string | null; onSelect: (id: string | null) => void;
+  grafo: Grafo;
+  seleccionado: string | null;
+  /** Nivel de contagio de cada nodo afectado (viene de GET /impacto). */
+  niveles: Map<string, number> | null;
+  onSelect: (id: string | null) => void;
 }) {
   const layout = useMemo(() => calcularLayout(grafo.nodos), [grafo.nodos]);
-  const niveles = useGraphImpactLevels(grafo, seleccionado);
   const afectados = useMemo(
     () => (niveles ? new Set(niveles.keys()) : null),
     [niveles],

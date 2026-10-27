@@ -134,7 +134,11 @@ function App() {
         <HomePage onOpenVisualization={() => openView("visualizacion")} />
       )}
       {view === "registro" && (
-        <DependencyRegister grafo={graph} onAdd={addDependency} />
+        <DependencyRegister
+          grafo={graph}
+          onAdd={addDependency}
+          onAddNode={(node) => appendNodes([node])}
+        />
       )}
       {view === "visualizacion" && (
         <VisualizationPage

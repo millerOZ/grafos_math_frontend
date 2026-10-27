@@ -1,13 +1,16 @@
-import type { Arista, Grafo } from '../features/graph/types';
+import type { Arista, Grafo, Nodo } from '../features/graph/types';
 import { ETIQUETAS_CAPA, REGLAS_DEPENDENCIA } from '../features/graph/domain/dependencyRules';
 import { useDependencyRegistration } from '../features/graph/hooks/useDependencyRegistration';
+import ElementRegister from './ElementRegister';
 
 export default function DependencyRegister({
   grafo,
   onAdd,
+  onAddNode,
 }: {
   grafo: Grafo;
   onAdd: (arista: Arista) => void;
+  onAddNode: (nodo: Nodo) => void;
 }) {
   const {
     originId, targetId, message, origin, origins, targets, validEdges,
@@ -74,6 +77,8 @@ export default function DependencyRegister({
           {message && <p className="form-message" role="status">{message}</p>}
         </form>
       </section>
+
+      <ElementRegister grafo={grafo} onAddNode={onAddNode} onAddEdge={onAdd} />
 
       <section className="dependency-list" aria-labelledby="dependency-list-title">
         <div className="list-heading">

@@ -18,3 +18,38 @@ export interface Grafo {
   nodos: Nodo[];
   aristas: Arista[];
 }
+
+// --- Impacto: GET /impacto/{id} ---
+
+export type CasoImpacto = 'inexistente' | 'sin_dependencias' | 'afecta_cadena';
+
+export interface NodoImpactado {
+  id: string;
+  nombre: string;
+  capa: Capa;
+}
+
+export interface NodoAfectado extends NodoImpactado {
+  nivel: number;    // flechas desde el origen hasta este elemento
+  camino: string[]; // ids desde el origen hasta este elemento
+}
+
+export interface ImpactoResponse {
+  origen: NodoImpactado | null;
+  caso: CasoImpacto;
+  mensaje: string;
+  visitados: string[];
+  afectados: NodoAfectado[];
+}
+
+// --- Registro de elementos: POST /proveedores y POST /insumos ---
+
+export interface ProveedorCreate {
+  id: string;
+  nombre: string;
+  categoria?: string;
+}
+
+export interface InsumoCreate extends ProveedorCreate {
+  proveedor_id: string;
+}

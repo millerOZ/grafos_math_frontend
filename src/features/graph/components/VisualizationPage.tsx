@@ -1,5 +1,6 @@
-import { useGraphImpact } from "../hooks/useGraphImpact";
-import type { Capa, Grafo, Nodo } from "../types";
+import { useMemo } from "react";
+import { useImpacto } from "../hooks/useImpacto";
+import type { Capa, Grafo, ImpactoResponse, Nodo } from "../types";
 import Graph3D from "../../../components/Graph3D";
 
 const LEGEND = [
@@ -43,13 +44,16 @@ export function VisualizationPage({
   onSelect,
   onBack,
 }: VisualizationPageProps) {
-  const impacted = useGraphImpact(graph, selectedId) ?? new Set<string>();
+  const { impacto, error, cargando } = useImpacto(selectedId);
   const selectedNode = graph.nodos.find((node) => node.id === selectedId);
-  const impactedNodes = graph.nodos.filter(
-    (node) => impacted.has(node.id) && node.id !== selectedId,
-  );
-
-  
+  // Nivel de contagio por nodo (origen = 0), tal como lo devuelve el back, para animar el grafo.
+  const niveles = useMemo(() => {
+    if (!impacto?.origen) return null;
+    return new Map<string, number>([
+      [impacto.origen.id, 0],
+      ...impacto.afectados.map((item) => [item.id, item.nivel] as [string, number]),
+    ]);
+  }, [impacto]);
 
   return (
     <main className="visualization-view">
@@ -59,7 +63,7 @@ export function VisualizationPage({
           <h1>Red de dependencias</h1>
           <p>Selecciona un nodo para descubrir qué elementos dependen de él.</p>
         </div>
-        <Graph3D grafo={graph} seleccionado={selectedId} onSelect={onSelect} />
+        <Graph3D grafo={graph} seleccionado={selectedId} niveles={niveles} onSelect={onSelect} />
       </div>
       <aside className="graph-panel">
         <div>
@@ -80,7 +84,13 @@ export function VisualizationPage({
           ))}
         </div>
         {selectedNode ? (
-          <ImpactTicket node={selectedNode} afectados={impactedNodes} />
+          <ImpactTicket
+            node={selectedNode}
+            graph={graph}
+            impacto={impacto}
+            error={error}
+            cargando={cargando}
+          />
         ) : (
           <div className="empty-selection">
             <p>Toca un punto de la red para ver qué se cae con él.</p>
@@ -94,9 +104,29 @@ export function VisualizationPage({
   );
 }
 
-function ImpactTicket({ node, afectados }: { node: Nodo; afectados: Nodo[] }) {
+interface ImpactTicketProps {
+  node: Nodo;
+  graph: Grafo;
+  impacto: ImpactoResponse | null;
+  error: string | null;
+  cargando: boolean;
+}
+
+function ImpactTicket({ node, graph, impacto, error, cargando }: ImpactTicketProps) {
   const meta = CAPA_META[node.capa];
-  const consecuencia = textoConsecuencia(node.capa, afectados.length);
+  const afectados = impacto?.afectados ?? [];
+  let consecuencia: string;
+  if (cargando) {
+    consecuencia = "Consultando el impacto…";
+  } else if (error) {
+    consecuencia = `No se pudo consultar el impacto (${error}).`;
+  } else if (impacto?.caso === "inexistente") {
+    consecuencia = impacto.mensaje;
+  } else {
+    consecuencia = textoConsecuencia(node.capa, afectados.length);
+  }
+  const nombreDe = (id: string) =>
+    graph.nodos.find((item) => item.id === id)?.nombre ?? id;
 
   return (
     <article className="impact-card" aria-live="polite">
@@ -116,7 +146,14 @@ function ImpactTicket({ node, afectados }: { node: Nodo; afectados: Nodo[] }) {
                 className="impact-stitch"
                 style={{ background: CAPA_META[item.capa].color }}
               />
-              <span className="impact-item-name">{item.nombre}</span>
+              <span className="impact-item-name">
+                {item.nombre}
+                {item.nivel > 1 && (
+                  <small className="impact-item-via">
+                    vía {item.camino.slice(1, -1).map(nombreDe).join(" → ")}
+                  </small>
+                )}
+              </span>
               <span className="impact-item-capa">{CAPA_META[item.capa].label}</span>
             </li>
           ))}
