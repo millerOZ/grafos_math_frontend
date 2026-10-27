@@ -1,6 +1,6 @@
+import { useMemo } from 'react';
 import type { Arista, Grafo, Nodo } from '../features/graph/types';
-import { ETIQUETAS_CAPA, REGLAS_DEPENDENCIA } from '../features/graph/domain/dependencyRules';
-import { useDependencyRegistration } from '../features/graph/hooks/useDependencyRegistration';
+import { ETIQUETAS_CAPA, REGLAS_DEPENDENCIA, esDependenciaPermitida } from '../features/graph/domain/dependencyRules';
 import ElementRegister from './ElementRegister';
 
 export default function DependencyRegister({
@@ -12,19 +12,20 @@ export default function DependencyRegister({
   onAdd: (arista: Arista) => void;
   onAddNode: (nodo: Nodo) => void;
 }) {
-  const {
-    originId, targetId, message, origin, origins, targets, validEdges,
-    submit, setOriginId, setTargetId,
-  } = useDependencyRegistration(grafo, onAdd);
+  const validEdges = useMemo(() => grafo.aristas.filter((edge) => {
+    const edgeOrigin = grafo.nodos.find((node) => node.id === edge.origen);
+    const edgeTarget = grafo.nodos.find((node) => node.id === edge.destino);
+    return Boolean(edgeOrigin && edgeTarget && esDependenciaPermitida(edgeOrigin, edgeTarget));
+  }), [grafo.aristas, grafo.nodos]);
 
   return (
     <main className="register-view">
       <section className="register-intro">
-        <p className="eyebrow">Registro de relaciones</p>
+        <p className="eyebrow">Registro de elementos</p>
         <h1>Construye la red.</h1>
         <p className="register-description">
-          Define qué elementos necesita cada parte del sistema. Solo se pueden conectar
-          capas compatibles para conservar la estructura del grafo.
+          Cada elemento nuevo se enlaza con la capa de la que depende: un insumo con su
+          proveedor y un producto con sus insumos. Así la red conserva su estructura.
         </p>
         <div className="rule-list" aria-label="Reglas de conexión">
           {REGLAS_DEPENDENCIA.map((regla) => (
@@ -37,45 +38,6 @@ export default function DependencyRegister({
             </div>
           ))}
         </div>
-      </section>
-
-      <section className="register-card" aria-labelledby="register-title">
-        <div className="register-card-heading">
-          <div>
-            <p className="panel-kicker">Nueva dependencia</p>
-            <h2 id="register-title">Conectar elementos</h2>
-          </div>
-          <span className="counter-badge">{validEdges.length} registradas</span>
-        </div>
-        <form onSubmit={submit}>
-          <label htmlFor="dependency-origin">Elemento que requiere</label>
-          <select
-            id="dependency-origin"
-            className={origin ? `layer-select ${origin.capa}` : 'layer-select'}
-            value={originId}
-            onChange={(event) => setOriginId(event.target.value)}
-          >
-            <option value="">Selecciona el origen</option>
-            {origins.map((nodo) => <option value={nodo.id} key={nodo.id}>{nodo.nombre}</option>)}
-          </select>
-
-          <label htmlFor="dependency-target">Elemento requerido</label>
-          <select
-            id="dependency-target"
-            className={targetId ? `layer-select ${grafo.nodos.find((nodo) => nodo.id === targetId)?.capa}` : 'layer-select'}
-            value={targetId}
-            disabled={!origin}
-            onChange={(event) => setTargetId(event.target.value)}
-          >
-            <option value="">{origin ? 'Selecciona el destino' : 'Primero elige un origen'}</option>
-            {targets.map((nodo) => <option value={nodo.id} key={nodo.id}>{nodo.nombre}</option>)}
-          </select>
-
-          <button className="primary-button register-submit" type="submit">
-            Registrar dependencia <span aria-hidden="true">→</span>
-          </button>
-          {message && <p className="form-message" role="status">{message}</p>}
-        </form>
       </section>
 
       <ElementRegister grafo={grafo} onAddNode={onAddNode} onAddEdge={onAdd} />
