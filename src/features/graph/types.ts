@@ -53,3 +53,7 @@ export interface ProveedorCreate {
 export interface InsumoCreate extends ProveedorCreate {
   proveedor_id: string;
 }
+
+export interface ProductoCreate extends ProveedorCreate {
+  insumo_ids: string[]; // al menos uno
+}

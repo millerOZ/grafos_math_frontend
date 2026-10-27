@@ -1,4 +1,4 @@
-import type { Arista, ImpactoResponse, InsumoCreate, Nodo, ProveedorCreate } from "../types";
+import type { Arista, ImpactoResponse, InsumoCreate, Nodo, ProductoCreate, ProveedorCreate } from "../types";
 
 // Para probar con el back local: crear .env.local con VITE_API_URL=http://127.0.0.1:8000
 const API_URL = import.meta.env.VITE_API_URL ?? "https://grafos-math-back.onrender.com";
@@ -79,4 +79,8 @@ export function crearProveedor(datos: ProveedorCreate): Promise<Nodo> {
 
 export function crearInsumo(datos: InsumoCreate): Promise<Nodo> {
   return postNode("insumos", datos);
+}
+
+export function crearProducto(datos: ProductoCreate): Promise<Nodo> {
+  return postNode("productos", datos);
 }
