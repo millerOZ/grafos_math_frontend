@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "threejs-impl-react-three-fiber": {
+      "source": "Impertio-Studio/Three.js-Claude-Skill-Package",
+      "sourceType": "github",
+      "skillPath": "skills/source/threejs-impl/threejs-impl-react-three-fiber/SKILL.md",
+      "computedHash": "a699e29c3f9979ffe3a20935f94ac35be00515e15c4272f1d2039a2d2198cef3"
+    }
+  }
+}

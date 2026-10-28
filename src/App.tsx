@@ -1,46 +1,91 @@
-import { useMemo, useState } from 'react';
-import './App.css';
-import DependencyRegister from './components/DependencyRegister';
-import Graph3D from './components/Graph3D';
-import { MOCK_GRAFO, type Arista, type Grafo } from './data/mockGraph';
-import { calcularImpacto } from './lib/impact';
+import { useEffect, useRef, useState } from "react";
+import "./App.css";
+import DependencyRegister from "./components/DependencyRegister";
+import { HomePage } from "./features/graph/components/HomePage";
+import { VisualizationPage } from "./features/graph/components/VisualizationPage";
+import { MOCK_GRAFO } from "./features/graph/data/mockGraph";
+import { getAristas, getInsumos, getProducts, getProveedores } from "./features/graph/hooks/getProducts";
+import type { Arista, Grafo } from "./features/graph/types";
 
-type Vista = 'inicio' | 'visualizacion' | 'registro';
-
-const LEYENDA = [
-  { capa: 'producto', color: '#3478f6', label: 'Producto' },
-  { capa: 'insumo', color: '#e3a52f', label: 'Insumo / infraestructura' },
-  { capa: 'proveedor', color: '#36a269', label: 'Proveedor' },
-  { capa: 'afectado', color: '#e05252', label: 'Afectado por el fallo' },
-];
+type View = "inicio" | "visualizacion" | "registro";
 
 function App() {
-  const [vista, setVista] = useState<Vista>('inicio');
-  const [seleccionado, setSeleccionado] = useState<string | null>(null);
-  const [grafo, setGrafo] = useState<Grafo>(MOCK_GRAFO);
+  const [view, setView] = useState<View>("inicio");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [graph, setGraph] = useState<Grafo>(MOCK_GRAFO);
+  const hasLoadedData = useRef(false);
 
-  const afectados = useMemo(
-    () => (seleccionado ? calcularImpacto(grafo, seleccionado) : new Set<string>()),
-    [grafo, seleccionado],
-  );
-  const nodoSel = grafo.nodos.find((n) => n.id === seleccionado);
-  const listaAfectados = grafo.nodos.filter(
-    (n) => afectados.has(n.id) && n.id !== seleccionado,
-  );
-
-  const abrirVisualizacion = () => {
-    setSeleccionado(null);
-    setVista('visualizacion');
+  const openView = (nextView: View) => {
+    setSelectedId(null);
+    setView(nextView);
   };
 
-  const abrirRegistro = () => {
-    setSeleccionado(null);
-    setVista('registro');
+  const addDependency = (edge: Arista) => {
+    setGraph((current) => ({
+      ...current,
+      aristas: [...current.aristas, edge],
+    }));
   };
 
-  const agregarDependencia = (arista: Arista) => {
-    setGrafo((actual) => ({ ...actual, aristas: [...actual.aristas, arista] }));
+  const appendNodes = (nodes: Grafo["nodos"]) => {
+    setGraph((current) => ({
+      ...current,
+      nodos: [...current.nodos, ...nodes],
+    }));
   };
+
+  const loadProducts = async () => {
+    try {
+      const products = await getProducts();
+      console.log("Producto", products);
+      appendNodes(products);
+    } catch (error) {
+      console.error("No se pudieron cargar los productos:", error);
+    }
+  };
+  const loadInsumos = async () => {
+    try {
+      const insumos = await getInsumos();
+      console.log("Insumo ", insumos);
+      appendNodes(insumos);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  const loadProveedores = async () => {
+    try {
+      const proveedores = await getProveedores();
+      console.log("Proveedor ", proveedores);
+      appendNodes(proveedores);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  const loadAristas = async () => {
+    try {
+      const aristas = await getAristas();
+      console.log("Aristas ", aristas);
+     aristas.map(item => {
+      addDependency(item)
+     })
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    if (hasLoadedData.current) {
+      return;
+    }
+
+    hasLoadedData.current = true;
+    void Promise.all([
+      loadProducts(),
+      loadInsumos(),
+      loadProveedores(),
+      loadAristas(),
+    ]);
+  }, []);
 
   return (
     <div className="app-shell">
@@ -48,160 +93,60 @@ function App() {
         <button
           className="brand"
           type="button"
-          onClick={() => setVista("inicio")}
+          onClick={() => openView("inicio")}
         >
-          <span className="brand-mark" aria-hidden="true">
-            ∿
-          </span>
-          <span>Grafos</span>
+          <img
+            className="brand-mark"
+            src="/images/logo.png"
+            alt=""
+            aria-hidden="true"
+          />
+          <span>Bake & Brew</span>
         </button>
         <nav className="main-nav" aria-label="Navegación principal">
           <button
-            className={vista === "inicio" ? "nav-link active" : "nav-link"}
+            className={view === "inicio" ? "nav-link active" : "nav-link"}
             type="button"
-            onClick={() => setVista("inicio")}
+            onClick={() => openView("inicio")}
           >
             Inicio
           </button>
           <button
             className={
-              vista === "visualizacion" ? "nav-link active" : "nav-link"
+              view === "visualizacion" ? "nav-link active" : "nav-link"
             }
             type="button"
-            onClick={abrirVisualizacion}
+            onClick={() => openView("visualizacion")}
           >
             Visualización
           </button>
           <button
-            className={
-              vista === "registro" ? "nav-link active" : "nav-link"
-            }
+            className={view === "registro" ? "nav-link active" : "nav-link"}
             type="button"
-            onClick={abrirRegistro}
+            onClick={() => openView("registro")}
           >
             Registro
           </button>
         </nav>
         <span className="course-label">Matemáticas para la información</span>
       </header>
-
-      {vista === "inicio" ? (
-        <main className="home-content">
-          <section className="hero-copy">
-            <p className="eyebrow">Explora las conexiones</p>
-            <h1>
-              Comprende el mundo
-              <br />
-              <em>a través de sus grafos.</em>
-            </h1>
-            <p className="hero-description">
-              Visualiza redes de dependencia, identifica relaciones y descubre
-              qué elementos se ven afectados cuando algo falla.
-            </p>
-            <button
-              className="primary-button"
-              type="button"
-              onClick={abrirVisualizacion}
-            >
-              Abrir visualización <span aria-hidden="true">→</span>
-            </button>
-          </section>
-
-          <section className="home-preview" aria-label="Vista previa del grafo">
-            <div className="preview-grid" aria-hidden="true" />
-            <div className="preview-line line-one" aria-hidden="true" />
-            <div className="preview-line line-two" aria-hidden="true" />
-            <div className="preview-line line-three" aria-hidden="true" />
-            <div className="preview-node node-a">A</div>
-            <div className="preview-node node-b">B</div>
-            <div className="preview-node node-c">C</div>
-            <div className="preview-node node-d">D</div>
-            <p>Red de dependencias</p>
-          </section>
-
-          <div className="feature-row">
-            <div>
-              <strong>01</strong>
-              <span>Explora</span>
-              <p>Recorre cada nodo y sus conexiones.</p>
-            </div>
-            <div>
-              <strong>02</strong>
-              <span>Analiza</span>
-              <p>Selecciona un elemento para ver su impacto.</p>
-            </div>
-            <div>
-              <strong>03</strong>
-              <span>Comprende</span>
-              <p>Encuentra patrones en redes complejas.</p>
-            </div>
-          </div>
-        </main>
-      ) : vista === "registro" ? (
-        <DependencyRegister grafo={grafo} onAdd={agregarDependencia} />
-      ) : (
-        <main className="visualization-view">
-          <div className="graph-stage">
-            <div className="graph-heading">
-              <p className="eyebrow">Visualización</p>
-              <h1>Red de dependencias</h1>
-              <p>
-                Selecciona un nodo para descubrir qué elementos dependen de él.
-              </p>
-            </div>
-            <Graph3D
-               grafo={grafo}
-              seleccionado={seleccionado}
-              onSelect={setSeleccionado}
-            />
-          </div>
-          <aside className="graph-panel">
-            <div>
-              <p className="panel-kicker">Mapa interactivo</p>
-              <h2>Analiza el sistema</h2>
-              <p className="panel-description">
-                Haz clic en un nodo. El grafo resaltará todos los elementos que
-                podrían verse afectados.
-              </p>
-            </div>
-            <div className="legend">
-              <p className="panel-label">Capas</p>
-              {LEYENDA.map((item) => (
-                <div className="legend-item" key={item.capa}>
-                  <span style={{ background: item.color }} />
-                  {item.label}
-                </div>
-              ))}
-            </div>
-            {nodoSel ? (
-              <div className="impact-card">
-                <p className="panel-label">Nodo seleccionado</p>
-                <h3>{nodoSel.nombre}</h3>
-                <p>
-                  Si falla, afecta a <strong>{listaAfectados.length}</strong>{" "}
-                  elementos.
-                </p>
-                <ul>
-                  {listaAfectados.map((n) => (
-                    <li key={n.id}>{n.nombre}</li>
-                  ))}
-                </ul>
-              </div>
-            ) : (
-              <div className="empty-selection">
-                <span aria-hidden="true">＋</span>
-                <p>Selecciona un nodo para comenzar</p>
-              </div>
-            )}
-            <button
-              className="back-button"
-              type="button"
-              onClick={() => setVista("inicio")}
-            >
-              ← Volver al inicio
-            </button>
-          </aside>
-        </main>
+      {view === "inicio" && (
+        <HomePage onOpenVisualization={() => openView("visualizacion")} />
+      )}
+      {view === "registro" && (
+        <DependencyRegister
+          grafo={graph}
+          onAdd={addDependency}
+          onAddNode={(node) => appendNodes([node])}
+        />
+      )}
+      {view === "visualizacion" && (
+        <VisualizationPage
+          graph={graph}
+          selectedId={selectedId}
+          onSelect={setSelectedId}
+          onBack={() => openView("inicio")}
+        />
       )}
     </div>
   );

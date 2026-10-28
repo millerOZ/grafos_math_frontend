@@ -46,3 +46,4 @@ coverage/
 # Lockfiles de otros gestores (deja solo el que uses)
 package-lock.json
 # yarn.lock
+.claude
