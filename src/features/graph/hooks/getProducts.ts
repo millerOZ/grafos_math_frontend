@@ -10,8 +10,8 @@ import type {
 } from "../types";
 
 // Para probar con el back local: crear .env.local con VITE_API_URL=http://127.0.0.1:8000
-//const API_URL = import.meta.env.VITE_API_URL ?? "https://grafos-math-back.onrender.com";
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = import.meta.env.VITE_API_URL ?? "https://grafos-math-back.onrender.com";
+//const API_URL = "http://127.0.0.1:8000";
 async function getNodes(endpoint: string): Promise<any[]>{
   const response = await fetch(`${API_URL}/${endpoint}`);
 
