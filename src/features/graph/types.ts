@@ -1,4 +1,4 @@
-export type Capa = 'producto' | 'insumo' | 'proveedor';
+export type Capa = 'producto' | 'proceso' | 'insumo' | 'proveedor';
 
 export interface Nodo {
   id: string;
@@ -42,7 +42,7 @@ export interface ImpactoResponse {
   afectados: NodoAfectado[];
 }
 
-// --- Registro de elementos: POST /proveedores y POST /insumos ---
+// --- Registro de elementos: POST /proveedores, /procesos, /insumos y /productos ---
 
 export interface ProveedorCreate {
   id: string;
@@ -56,4 +56,13 @@ export interface InsumoCreate extends ProveedorCreate {
 
 export interface ProductoCreate extends ProveedorCreate {
   insumo_ids: string[]; // al menos uno
+}
+
+export type ProcesoCreate = ProveedorCreate; // se crea sin conexiones
+
+// --- Conectar dos elementos existentes: POST /dependencias ---
+
+export interface DependenciaCreate {
+  origen: string;  // origen REQUIERE destino
+  destino: string;
 }

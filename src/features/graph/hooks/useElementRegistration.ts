@@ -1,11 +1,12 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import type { Arista, Capa, Grafo, Nodo } from '../types';
 import { siguienteCapa } from '../domain/dependencyRules';
-import { crearInsumo, crearProducto, crearProveedor } from './getProducts';
+import { crearInsumo, crearProceso, crearProducto, crearProveedor } from './getProducts';
 
 /**
  * Cada elemento se crea enlazado a la capa de la que depende:
  * - proveedor: no requiere nada.
+ * - proceso: se crea sin conexiones; se conecta luego con "Conectar".
  * - insumo: requiere exactamente un proveedor.
  * - producto: requiere al menos un insumo.
  */
@@ -90,6 +91,8 @@ export function useElementRegistration(
       let node: Nodo;
       if (layer === 'proveedor') {
         node = await crearProveedor(datos);
+      } else if (layer === 'proceso') {
+        node = await crearProceso(datos);
       } else if (layer === 'insumo') {
         node = await crearInsumo({ ...datos, proveedor_id: requiredIds[0] });
       } else {
@@ -109,7 +112,7 @@ export function useElementRegistration(
       setName('');
       setCategory('');
       setRequiredIds([]);
-      setMessage(`${node.nombre} quedó registrado en el catálogo.`);
+      setMessage(`${node.nombre} quedó guardado en el catálogo.`);
     } catch (err) {
       setMessage(err instanceof Error ? err.message : 'No se pudo registrar el elemento.');
     } finally {
