@@ -123,3 +123,13 @@ export function crearProceso(datos: ProcesoCreate): Promise<Nodo> {
 export function crearDependencia(datos: DependenciaCreate): Promise<Arista> {
   return post<Arista>("dependencias", datos);
 }
+
+// Quita una dependencia por id (404 si no existe). Sirve para romper un ciclo.
+export async function eliminarDependencia(id: string): Promise<Arista> {
+  const response = await fetch(`${API_URL}/dependencias/${encodeURIComponent(id)}`, { method: "DELETE" });
+  if (!response.ok) {
+    throw new Error(await getErrorDetail(response));
+  }
+
+  return (await response.json()) as Arista;
+}

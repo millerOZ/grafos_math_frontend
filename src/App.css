@@ -445,6 +445,10 @@ h1 em { color: var(--tinta-suave); font-style: normal; }
 .ciclo-frases { margin: 0; padding: 0; list-style: none; }
 .ciclo-frases li { padding: 7px 0; border-bottom: 1px solid #fbd5d5; color: var(--tinta-media); font-size: 14px; }
 .ciclo-frases strong { color: var(--tinta); font-weight: 600; }
+.ciclo-frases li { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ciclo-quitar { flex: none; padding: 4px 10px; border: 1px solid var(--alerta); background: #fff; color: var(--alerta); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+.ciclo-quitar:hover:not(:disabled), .ciclo-quitar:focus-visible { background: var(--alerta); color: #fff; }
+.ciclo-quitar:disabled { opacity: 0.5; cursor: wait; }
 .ciclo-ayuda { margin: 12px 0 0; color: var(--tinta-suave); font-size: 13px; line-height: 1.5; }
 
 .planes { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
@@ -460,6 +464,8 @@ h1 em { color: var(--tinta-suave); font-style: normal; }
 .plan-texto small { display: block; margin-top: 2px; color: var(--tinta-suave); font-size: 12.5px; font-weight: 400; }
 .plan-bloqueo { margin: 0; color: var(--alerta); font-size: 14px; line-height: 1.5; }
 .ciclos-nota { margin: 28px 0 0; color: var(--tinta-suave); font-size: 13px; line-height: 1.5; }
+.ciclos-view > .ciclos-nota:first-child { margin: 0 0 16px; }
+.ciclos-nota-error { color: var(--alerta); }
 
 @media (max-width: 850px) {
   .visualization-view, .visualization-view.solo { grid-template-columns: 1fr; grid-template-rows: auto; }

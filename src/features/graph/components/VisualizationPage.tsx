@@ -55,6 +55,8 @@ interface VisualizationPageProps {
   onSelect: (id: string | null) => void;
   /** Respuesta de GET /orden-produccion (la consulta vive en App). */
   ordenProduccion: { orden: OrdenProduccionResponse | null; error: string | null; cargando: boolean };
+  /** Se llama después de quitar dependencias en el back, para actualizar la red. */
+  onRemoveDependencies: (ids: string[]) => void;
   onBack: () => void;
   /** Solo existe para el rol que puede registrar (compras). */
   onOpenRegistro?: () => void;
@@ -66,6 +68,7 @@ export function VisualizationPage({
   selectedId,
   onSelect,
   ordenProduccion,
+  onRemoveDependencies,
   onBack,
   onOpenRegistro,
 }: VisualizationPageProps) {
@@ -159,7 +162,12 @@ export function VisualizationPage({
         </>
       ) : (
         <div className="ciclos-stage">
-          <CiclosView graph={graph} {...ordenProduccion} onOpenRegistro={onOpenRegistro} />
+          <CiclosView
+            graph={graph}
+            {...ordenProduccion}
+            onRemoveDependencies={onRemoveDependencies}
+            onOpenRegistro={onOpenRegistro}
+          />
         </div>
       )}
     </main>

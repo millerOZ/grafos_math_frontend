@@ -108,6 +108,13 @@ function App() {
     }));
   };
 
+  const removeDependencies = (ids: string[]) => {
+    setGraph((current) => ({
+      ...current,
+      aristas: current.aristas.filter((edge) => !ids.includes(edge.id)),
+    }));
+  };
+
   const appendNodes = (nodes: Grafo["nodos"]) => {
     setGraph((current) => ({
       ...current,
@@ -256,6 +263,7 @@ function App() {
           selectedId={selectedId}
           onSelect={setSelectedId}
           ordenProduccion={ordenProduccion}
+          onRemoveDependencies={removeDependencies}
           onBack={() => openView("inicio")}
           onOpenRegistro={rol === "compras" ? () => openView("registro") : undefined}
         />

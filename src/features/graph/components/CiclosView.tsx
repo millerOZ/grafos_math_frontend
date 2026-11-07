@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { eliminarDependencia } from '../hooks/getProducts';
 import type { Ciclo, Grafo, OrdenProduccionResponse } from '../types';
 
 interface CiclosViewProps {
@@ -6,6 +8,8 @@ interface CiclosViewProps {
   orden: OrdenProduccionResponse | null;
   error: string | null;
   cargando: boolean;
+  /** Se llama con los ids quitados en el back, para actualizar la red. */
+  onRemoveDependencies: (ids: string[]) => void;
   /** Solo lo recibe el rol que puede registrar; producción solo consulta. */
   onOpenRegistro?: () => void;
 }
@@ -14,8 +18,31 @@ interface CiclosViewProps {
  * Responde dos preguntas del coordinador de producción:
  * ¿en qué orden preparo cada producto? y ¿hay pasos que se contradicen?
  */
-export function CiclosView({ graph, orden, error, cargando, onOpenRegistro }: CiclosViewProps) {
+export function CiclosView({ graph, orden, error, cargando, onRemoveDependencies, onOpenRegistro }: CiclosViewProps) {
   const nombre = (id: string) => graph.nodos.find((n) => n.id === id)?.nombre ?? id;
+  // Frase del ciclo que se está quitando ("origen>destino") y resultado del último intento.
+  const [quitando, setQuitando] = useState<string | null>(null);
+  const [aviso, setAviso] = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null);
+
+  /** Quita "origen necesita destino". Si la relación se registró repetida, se quitan todas. */
+  const quitar = async (origen: string, destino: string) => {
+    const ids = graph.aristas.filter((a) => a.origen === origen && a.destino === destino).map((a) => a.id);
+    setQuitando(`${origen}>${destino}`);
+    setAviso(null);
+    const quitadas: string[] = [];
+    try {
+      for (const id of ids) {
+        await eliminarDependencia(id);
+        quitadas.push(id);
+      }
+      setAviso({ tipo: 'ok', texto: `Se quitó: ${nombre(origen)} ya no necesita ${nombre(destino)}.` });
+    } catch (err) {
+      setAviso({ tipo: 'error', texto: err instanceof Error ? err.message : 'No se pudo quitar la dependencia.' });
+    } finally {
+      if (quitadas.length) onRemoveDependencies(quitadas);
+      setQuitando(null);
+    }
+  };
 
   if (!orden) {
     return (
@@ -59,6 +86,11 @@ export function CiclosView({ graph, orden, error, cargando, onOpenRegistro }: Ci
           No se pudo actualizar ({error}). Se muestra la última respuesta recibida.
         </p>
       )}
+      {aviso && (
+        <p className={aviso.tipo === 'ok' ? 'ciclos-nota' : 'ciclos-nota ciclos-nota-error'} role="status">
+          {aviso.texto}
+        </p>
+      )}
       {orden.caso === 'orden_valido' ? (
         <div className="ciclos-estado ok">
           <h2 id="ciclos-titulo">Los pasos de producción no se contradicen</h2>
@@ -90,16 +122,31 @@ export function CiclosView({ graph, orden, error, cargando, onOpenRegistro }: Ci
                 <div>
                   <h4>{ciclos.length > 1 ? `Ciclo ${i + 1}` : 'El ciclo'}</h4>
                   <ul className="ciclo-frases">
-                    {ciclo.ids.map((id, j) => (
-                      <li key={id}>
-                        <strong>{nombre(id)}</strong> necesita <strong>{nombre(ciclo.ids[(j + 1) % ciclo.ids.length])}</strong>
-                      </li>
-                    ))}
+                    {ciclo.ids.map((id, j) => {
+                      const requerido = ciclo.ids[(j + 1) % ciclo.ids.length];
+                      const clave = `${id}>${requerido}`;
+                      return (
+                        <li key={id}>
+                          <span>
+                            <strong>{nombre(id)}</strong> necesita <strong>{nombre(requerido)}</strong>
+                          </span>
+                          <button
+                            className="ciclo-quitar"
+                            type="button"
+                            disabled={quitando !== null}
+                            aria-label={`Quitar: ${nombre(id)} necesita ${nombre(requerido)}`}
+                            onClick={() => void quitar(id, requerido)}
+                          >
+                            {quitando === clave ? 'Quitando…' : 'Quitar'}
+                          </button>
+                        </li>
+                      );
+                    })}
                   </ul>
                   <p className="ciclo-ayuda">
                     {ciclo.ids.length === 1
                       ? 'Un proceso no puede necesitarse a sí mismo. Esa dependencia sobra.'
-                      : 'Al menos una de estas dependencias está de más. Revísenlas con el equipo de producción.'}
+                      : 'Al menos una de estas dependencias está de más. Quiten la que no corresponde y el orden se recalcula.'}
                   </p>
                 </div>
               </article>
