@@ -4,6 +4,7 @@ import type {
   ImpactoResponse,
   InsumoCreate,
   Nodo,
+  OrdenProduccionResponse,
   ProcesoCreate,
   ProductoCreate,
   ProveedorCreate,
@@ -89,6 +90,16 @@ export async function getImpacto(id: string): Promise<ImpactoResponse> {
   }
 
   return (await response.json()) as ImpactoResponse;
+}
+
+// Siempre responde 200: el caso (sin_procesos | orden_valido | ciclo) viene en el cuerpo.
+export async function getOrdenProduccion(): Promise<OrdenProduccionResponse> {
+  const response = await fetch(`${API_URL}/orden-produccion`);
+  if (!response.ok) {
+    throw new Error(`Error HTTP: ${response.status}`);
+  }
+
+  return (await response.json()) as OrdenProduccionResponse;
 }
 
 export function crearProveedor(datos: ProveedorCreate): Promise<Nodo> {

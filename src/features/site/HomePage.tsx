@@ -219,8 +219,8 @@ function DetrasDeLaVitrina({
         {visible && (
           <Suspense fallback={null}>
             <FloatingElements3D
-              colores={['#e0a73e', '#f1ece1', '#b07a3c', '#8fb39a', '#d9c2a0']}
-              linea="#f1ece1"
+              colores={['#f2af48', '#4ab494', '#a584dc', '#3ca2e0', '#e66e6d']}
+              linea="#272727"
             />
           </Suspense>
         )}

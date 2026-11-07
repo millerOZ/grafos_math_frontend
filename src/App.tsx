@@ -6,8 +6,8 @@ import { HomePage, type DestinoSitio } from "./features/site/HomePage";
 import { NosotrosPage } from "./features/site/NosotrosPage";
 import { VisitanosPage } from "./features/site/VisitanosPage";
 import { MOCK_GRAFO } from "./features/graph/data/mockGraph";
-import { analizarProcesos } from "./features/graph/domain/ciclos";
 import { getAristas, getInsumos, getProcesos, getProducts, getProveedores } from "./features/graph/hooks/getProducts";
+import { useOrdenProduccion } from "./features/graph/hooks/useOrdenProduccion";
 import type { Arista, Grafo } from "./features/graph/types";
 
 type VistaPublica = "inicio" | "nosotros" | "visitanos";
@@ -70,7 +70,9 @@ function App() {
   const [graph, setGraph] = useState<Grafo>(MOCK_GRAFO);
   const hasLoadedData = useRef(false);
 
-  const totalCiclos = useMemo(() => analizarProcesos(graph).ciclos.length, [graph]);
+  // Se consulta aquí (y no en la vista) porque la navegación también avisa los ciclos.
+  const ordenProduccion = useOrdenProduccion(graph);
+  const totalCiclos = ordenProduccion.orden?.ciclos.length ?? 0;
 
   const resumen = useMemo(() => ({
     proveedores: graph.nodos.filter((n) => n.capa === "proveedor").length,
@@ -253,6 +255,7 @@ function App() {
           graph={graph}
           selectedId={selectedId}
           onSelect={setSelectedId}
+          ordenProduccion={ordenProduccion}
           onBack={() => openView("inicio")}
           onOpenRegistro={rol === "compras" ? () => openView("registro") : undefined}
         />

@@ -52,10 +52,10 @@ function ConnectingLine({ start, end, color }: {
   return <primitive object={line} />;
 }
 
-const COLORES_BASE = ["#C4A577", "#6B6B6B", "#E8DED2", "#A67C52", "#2E2E2E"];
+const COLORES_BASE = ["#f2af48", "#4ab494", "#a584dc", "#3ca2e0", "#e66e6d"];
 
 /** `colores` permite usar la escena sobre fondos oscuros (5 colores, uno por nodo). */
-export function FloatingElements3D({ colores = COLORES_BASE, linea = "#C4A577" }: { colores?: string[]; linea?: string }) {
+export function FloatingElements3D({ colores = COLORES_BASE, linea = "#272727" }: { colores?: string[]; linea?: string }) {
   return (
     <Canvas
       camera={{ position: [0, 0, 8], fov: 45 }}
@@ -63,7 +63,7 @@ export function FloatingElements3D({ colores = COLORES_BASE, linea = "#C4A577" }
     >
       <ambientLight intensity={1.1} />
       <pointLight position={[10, 10, 10]} intensity={1.6} />
-      <pointLight position={[-10, -10, -10]} intensity={0.5} color="#C4A577" />
+      <pointLight position={[-10, -10, -10]} intensity={0.5} color="#ffffff" />
 
       {/* Floating nodes representing graph connections */}
       <FloatingShape position={[-2, 1, 0]} color={colores[0]} size={0.4} speed={0.8} />

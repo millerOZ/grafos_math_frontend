@@ -1,9 +1,11 @@
-import type { AnalisisProcesos, Ciclo } from '../domain/ciclos';
-import type { Grafo } from '../types';
+import type { Ciclo, Grafo, OrdenProduccionResponse } from '../types';
 
 interface CiclosViewProps {
   graph: Grafo;
-  analisis: AnalisisProcesos;
+  /** Respuesta de GET /orden-produccion: el back calcula el orden y los ciclos. */
+  orden: OrdenProduccionResponse | null;
+  error: string | null;
+  cargando: boolean;
   /** Solo lo recibe el rol que puede registrar; producción solo consulta. */
   onOpenRegistro?: () => void;
 }
@@ -12,12 +14,24 @@ interface CiclosViewProps {
  * Responde dos preguntas del coordinador de producción:
  * ¿en qué orden preparo cada producto? y ¿hay pasos que se contradicen?
  */
-export function CiclosView({ graph, analisis, onOpenRegistro }: CiclosViewProps) {
+export function CiclosView({ graph, orden, error, cargando, onOpenRegistro }: CiclosViewProps) {
   const nombre = (id: string) => graph.nodos.find((n) => n.id === id)?.nombre ?? id;
-  const { ciclos, planes, sinProcesos, procesos } = analisis;
+
+  if (!orden) {
+    return (
+      <section className="ciclos-view">
+        <div className={error ? 'ciclos-estado alerta' : 'ciclos-estado neutro'} role={error ? 'alert' : undefined}>
+          <h2>{error ? 'No se pudo consultar el orden de producción' : 'Consultando el orden de producción…'}</h2>
+          {error && <p>{error}</p>}
+        </div>
+      </section>
+    );
+  }
+
+  const { ciclos, planes, sin_procesos: sinProcesos } = orden;
   const bloqueados = planes.filter((p) => p.etapas === null);
 
-  if (procesos.length === 0) {
+  if (orden.caso === 'sin_procesos') {
     return (
       <section className="ciclos-view">
         <div className="ciclos-estado neutro">
@@ -39,8 +53,13 @@ export function CiclosView({ graph, analisis, onOpenRegistro }: CiclosViewProps)
   }
 
   return (
-    <section className="ciclos-view" aria-labelledby="ciclos-titulo">
-      {ciclos.length === 0 ? (
+    <section className="ciclos-view" aria-labelledby="ciclos-titulo" aria-busy={cargando}>
+      {error && (
+        <p className="ciclos-nota" role="alert">
+          No se pudo actualizar ({error}). Se muestra la última respuesta recibida.
+        </p>
+      )}
+      {orden.caso === 'orden_valido' ? (
         <div className="ciclos-estado ok">
           <h2 id="ciclos-titulo">Los pasos de producción no se contradicen</h2>
           <p>Cada producto tiene un orden de preparación posible. Abajo está, paso por paso.</p>
@@ -115,8 +134,8 @@ export function CiclosView({ graph, analisis, onOpenRegistro }: CiclosViewProps)
                   </ol>
                 ) : (
                   <p className="plan-bloqueo">
-                    Sin orden posible: usa {plan.bloqueadoPor.length === 1 ? 'el ciclo' : 'los ciclos'}{' '}
-                    {plan.bloqueadoPor.map((i) => ciclos[i].ids.map(nombre).join(' → ')).join(' y ')}.
+                    Sin orden posible: usa {plan.bloqueado_por.length === 1 ? 'el ciclo' : 'los ciclos'}{' '}
+                    {plan.bloqueado_por.map((i) => ciclos[i].ids.map(nombre).join(' → ')).join(' y ')}.
                   </p>
                 )}
               </article>

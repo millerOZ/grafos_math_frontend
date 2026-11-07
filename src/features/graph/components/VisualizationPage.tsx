@@ -1,7 +1,8 @@
-import { useMemo } from "react";
+import { useMemo, type CSSProperties } from "react";
 import { useImpacto } from "../hooks/useImpacto";
-import { analizarProcesos } from "../domain/ciclos";
-import type { Capa, Grafo, ImpactoResponse, Nodo } from "../types";
+import { useMovimiento } from "../hooks/useMovimiento";
+import { AFECTADO, CAPA_HOJA, CAPA_NODO } from "../paleta";
+import type { Capa, Grafo, ImpactoResponse, Nodo, OrdenProduccionResponse } from "../types";
 import Graph3D from "../../../components/Graph3D";
 import { CiclosView } from "./CiclosView";
 
@@ -15,18 +16,18 @@ export type ModoVisualizacion = "red" | "impacto" | "orden";
 
 /** Qué es cada capa, dicho para alguien que no conoce de grafos. */
 const LEGEND: { layer: Capa | "afectado"; color: string; label: string; detalle: string }[] = [
-  { layer: "proveedor", color: "#36a269", label: "Proveedor", detalle: "quien nos vende" },
-  { layer: "insumo", color: "#e3a52f", label: "Insumo", detalle: "lo que compramos" },
-  { layer: "proceso", color: "#8a5cd6", label: "Proceso", detalle: "lo que hacemos en la planta" },
-  { layer: "producto", color: "#3478f6", label: "Producto", detalle: "lo que vendemos" },
-  { layer: "afectado", color: "#c45c4a", label: "Afectado", detalle: "se detiene por la falla" },
+  { layer: "proveedor", color: CAPA_NODO.proveedor, label: "Proveedor", detalle: "quien nos vende" },
+  { layer: "insumo", color: CAPA_NODO.insumo, label: "Insumo", detalle: "lo que compramos" },
+  { layer: "proceso", color: CAPA_NODO.proceso, label: "Proceso", detalle: "lo que hacemos en la planta" },
+  { layer: "producto", color: CAPA_NODO.producto, label: "Producto", detalle: "lo que vendemos" },
+  { layer: "afectado", color: AFECTADO, label: "Afectado", detalle: "se detiene por la falla" },
 ];
 
 const CAPA_META: Record<Capa, { color: string; label: string }> = {
-  producto: { color: "#3478f6", label: "Producto" },
-  proceso: { color: "#8a5cd6", label: "Proceso" },
-  insumo: { color: "#e3a52f", label: "Insumo" },
-  proveedor: { color: "#36a269", label: "Proveedor" },
+  producto: { color: CAPA_NODO.producto, label: "Producto" },
+  proceso: { color: CAPA_NODO.proceso, label: "Proceso" },
+  insumo: { color: CAPA_NODO.insumo, label: "Insumo" },
+  proveedor: { color: CAPA_NODO.proveedor, label: "Proveedor" },
 };
 
 function textoConsecuencia(capa: Capa, cantidad: number) {
@@ -52,6 +53,8 @@ interface VisualizationPageProps {
   graph: Grafo;
   selectedId: string | null;
   onSelect: (id: string | null) => void;
+  /** Respuesta de GET /orden-produccion (la consulta vive en App). */
+  ordenProduccion: { orden: OrdenProduccionResponse | null; error: string | null; cargando: boolean };
   onBack: () => void;
   /** Solo existe para el rol que puede registrar (compras). */
   onOpenRegistro?: () => void;
@@ -62,12 +65,13 @@ export function VisualizationPage({
   graph,
   selectedId,
   onSelect,
+  ordenProduccion,
   onBack,
   onOpenRegistro,
 }: VisualizationPageProps) {
-  const analisis = useMemo(() => analizarProcesos(graph), [graph]);
   // El impacto solo se consulta en la vista de producción.
-  const { impacto, error, cargando } = useImpacto(modo === "impacto" ? selectedId : null);
+  const { impacto, ultimoImpacto, error, cargando } = useImpacto(modo === "impacto" ? selectedId : null);
+  const [movimiento, alternarMovimiento] = useMovimiento();
   const selectedNode = graph.nodos.find((node) => node.id === selectedId);
   // Nivel de contagio por nodo (origen = 0), tal como lo devuelve el back, para animar el grafo.
   const niveles = useMemo(() => {
@@ -78,6 +82,14 @@ export function VisualizationPage({
     ]);
   }, [impacto]);
 
+  // Con un nodo seleccionado solo se ven él y lo que impacta. Mientras llega la respuesta
+  // se conserva el subgrafo anterior, para que el mapa completo no parpadee entre clics.
+  const visibles = useMemo(() => {
+    const referencia = impacto ?? ultimoImpacto;
+    if (!referencia?.origen) return null;
+    return new Set([referencia.origen.id, ...referencia.afectados.map((item) => item.id)]);
+  }, [impacto, ultimoImpacto]);
+
   const esImpacto = modo === "impacto";
 
   return (
@@ -87,11 +99,20 @@ export function VisualizationPage({
           <div className="graph-stage">
             <Graph3D
               grafo={graph}
+              visibles={visibles}
               seleccionado={selectedId}
               niveles={esImpacto ? niveles : null}
+              movimiento={movimiento}
               onSelect={onSelect}
             />
-            <p className="graph-hint">Arrastra para mover el mapa. Usa la rueda del mouse para acercarte.</p>
+            <p className="graph-hint">
+              {esImpacto && selectedId
+                ? "Haz clic en un espacio vacío para volver al mapa completo."
+                : "Arrastra para mover el mapa. Usa la rueda del mouse para acercarte."}
+            </p>
+            <button className="graph-movimiento" type="button" onClick={alternarMovimiento}>
+              {movimiento ? "Pausar movimiento" : "Activar movimiento"}
+            </button>
           </div>
           <aside className="graph-panel">
             {selectedNode && esImpacto && (
@@ -138,7 +159,7 @@ export function VisualizationPage({
         </>
       ) : (
         <div className="ciclos-stage">
-          <CiclosView graph={graph} analisis={analisis} onOpenRegistro={onOpenRegistro} />
+          <CiclosView graph={graph} {...ordenProduccion} onOpenRegistro={onOpenRegistro} />
         </div>
       )}
     </main>
@@ -178,7 +199,11 @@ function NodeDetail({ node, graph }: { node: Nodo; graph: Grafo }) {
     );
 
   return (
-    <article className="impact-card" aria-live="polite">
+    <article
+      className="impact-card"
+      aria-live="polite"
+      style={{ "--hoja-capa": CAPA_HOJA[node.capa] } as CSSProperties}
+    >
       <header className="impact-head">
         <h3 className="impact-name">{node.nombre}</h3>
         <p className="impact-kind">
@@ -223,7 +248,11 @@ function ImpactTicket({ node, graph, impacto, error, cargando }: ImpactTicketPro
     graph.nodos.find((item) => item.id === id)?.nombre ?? id;
 
   return (
-    <article className="impact-card" aria-live="polite">
+    <article
+      className="impact-card"
+      aria-live="polite"
+      style={{ "--hoja-capa": CAPA_HOJA[node.capa] } as CSSProperties}
+    >
       <header className="impact-head">
         <h3 className="impact-name">{node.nombre}</h3>
         <p className="impact-kind">
