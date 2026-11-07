@@ -52,10 +52,10 @@ function ConnectingLine({ start, end, color }: {
   return <primitive object={line} />;
 }
 
-const COLORES_BASE = ["#f2af48", "#4ab494", "#a584dc", "#3ca2e0", "#e66e6d"];
+const COLORES_BASE = ["#b0843c", "#6f8a55", "#b86a45", "#7a5230", "#dc4a38"];
 
 /** `colores` permite usar la escena sobre fondos oscuros (5 colores, uno por nodo). */
-export function FloatingElements3D({ colores = COLORES_BASE, linea = "#272727" }: { colores?: string[]; linea?: string }) {
+export function FloatingElements3D({ colores = COLORES_BASE, linea = "#54351a" }: { colores?: string[]; linea?: string }) {
   return (
     <Canvas
       camera={{ position: [0, 0, 8], fov: 45 }}

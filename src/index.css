@@ -1,28 +1,29 @@
 /*
- * Paleta común: papel blanco, tinta carbón y un pastel por cada capa de la red.
+ * Paleta común, tomada de La Miguería: café, dorado y crema sobre blanco.
+ * Las capas de la red suman el verde de las matas y la terracota del horno.
  * La lectura de los colores está en src/features/graph/paleta.ts para el mapa 3D.
  */
 :root {
   --papel: #fff;
-  --niebla: #f4f4f2;
-  --linea: #e5e4e2;
-  --tinta: #272727;
-  --tinta-media: #585455;
-  --tinta-suave: #716d6e;
+  --niebla: #f7f3ec;
+  --linea: #eae3d7;
+  --tinta: #54351a;
+  --tinta-media: #6e5640;
+  --tinta-suave: #7a6550;
   --tiza: #fff;
-  --acento: #006aa0;
-  --alerta: #a43b38;
-  --bien: #13684b;
-  --afectado: #e66e6d;
-  --sol: #f9d68c;
-  --capa-proveedor: #4ab494;
-  --capa-insumo: #f2af48;
-  --capa-proceso: #a584dc;
-  --capa-producto: #3ca2e0;
-  --hoja-proveedor: #caf2e6;
-  --hoja-insumo: #fbedb8;
-  --hoja-proceso: #eae0ff;
-  --hoja-producto: #caecff;
+  --acento: #8a672c;
+  --alerta: #b0372a;
+  --bien: #4c6a37;
+  --afectado: #dc4a38;
+  --sol: #c59f61;
+  --capa-proveedor: #3f7a3a;
+  --capa-insumo: #a87d0c;
+  --capa-proceso: #b8601c;
+  --capa-producto: #6b3a17;
+  --hoja-proveedor: #e4ead6;
+  --hoja-insumo: #f7efdc;
+  --hoja-proceso: #f7ebe2;
+  --hoja-producto: #eae3d7;
   /* Esquina cortada a 54°, la misma de las hojas del mapa. */
   --corte: polygon(0 0, 100% 0, 100% calc(100% - 28px), calc(100% - 20px) 100%, 0 100%);
   --serif: Fraunces, "Iowan Old Style", Georgia, serif;

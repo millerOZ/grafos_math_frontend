@@ -1,6 +1,6 @@
 /* ==================================================================
    Sitio público de Bake & Brew (Inicio, Nosotros, Visítanos).
-   Paleta común en index.css: papel, tinta y pasteles. Fraunces para
+   Paleta común en index.css (La Miguería: café, dorado, crema). Fraunces para
    la voz de la marca, Inter para leer.
    ================================================================== */
 .site { background: var(--papel); color: var(--tinta); overflow-x: clip; }
@@ -41,8 +41,8 @@
 .home-hero::after {
   content: ''; position: absolute; inset: 0; z-index: -1;
   background:
-    linear-gradient(90deg, rgba(20, 20, 20, .86) 0%, rgba(20, 20, 20, .55) 45%, rgba(20, 20, 20, .1) 100%),
-    linear-gradient(0deg, rgba(20, 20, 20, .55) 0%, transparent 40%);
+    linear-gradient(90deg, rgba(40, 25, 12, .86) 0%, rgba(40, 25, 12, .55) 45%, rgba(40, 25, 12, .1) 100%),
+    linear-gradient(0deg, rgba(40, 25, 12, .55) 0%, transparent 40%);
 }
 .home-hero-contenido { max-width: 760px; }
 .home-hero-saludo { margin: 0 0 18px; color: var(--sol); font-size: 16px; font-weight: 600; }
@@ -55,12 +55,12 @@
 .home-hero-titulo span:nth-child(2) { animation-delay: .12s; }
 .home-hero-titulo span:nth-child(3) { animation-delay: .24s; color: var(--sol); font-style: italic; }
 .home-hero-texto, .home-hero-acciones, .home-hero-saludo { animation: aparecer .8s .45s ease both; }
-.home-hero-texto { max-width: 54ch; margin: 28px 0 32px; color: #f0efed; font-size: clamp(16px, 1.4vw, 19px); }
+.home-hero-texto { max-width: 54ch; margin: 28px 0 32px; color: var(--linea); font-size: clamp(16px, 1.4vw, 19px); }
 .home-hero-acciones { display: flex; flex-wrap: wrap; gap: 12px; }
 .home-hero-aviso {
   position: absolute; right: 6vw; bottom: 9vh; max-width: 24ch; margin: 0;
   padding-left: 14px; border-left: 2px solid var(--sol);
-  color: #f0efed; font-size: 14px; animation: aparecer .8s .7s ease both;
+  color: var(--linea); font-size: 14px; animation: aparecer .8s .7s ease both;
 }
 @keyframes subir-linea { from { opacity: 0; transform: translateY(40%); } to { opacity: 1; transform: none; } }
 @keyframes aparecer { from { opacity: 0; } to { opacity: 1; } }
@@ -83,7 +83,7 @@
 .home-historia-fotos { position: relative; height: 520px; }
 .foto-recorte {
   position: absolute; border-radius: 14px; background-image: url('/images/home-buffet.jpg');
-  background-repeat: no-repeat; box-shadow: 0 30px 60px -30px rgba(39, 39, 39, .45);
+  background-repeat: no-repeat; box-shadow: 0 30px 60px -30px rgba(84, 53, 26, .45);
 }
 .foto-croissant { top: 0; left: 6%; width: 64%; height: 62%; background-size: 240%; background-position: 56% 94%; }
 .foto-panal {
@@ -134,7 +134,7 @@
   filter: saturate(.85);
   transform: translate3d(0, var(--parallax, 0px), 0);
 }
-.home-banda::after { content: ''; position: absolute; inset: 0; z-index: -1; background: rgba(39, 39, 39, .78); }
+.home-banda::after { content: ''; position: absolute; inset: 0; z-index: -1; background: rgba(84, 53, 26, .78); }
 .home-banda-frase {
   max-width: 20ch; margin: 0; color: var(--tiza);
   font-family: var(--serif); font-size: clamp(34px, 5vw, 68px); font-weight: 480; line-height: 1.12 !important; letter-spacing: -.02em;
@@ -174,7 +174,7 @@
 .detras-escena { position: absolute; inset: 0 50% 0 0; opacity: .9; }
 .detras-texto { grid-column: 2; max-width: 520px; }
 .detras-texto h2 { color: var(--tiza); }
-.detras-texto p { margin: 20px 0 0; color: #d4d2d0; font-size: 17px; }
+.detras-texto p { margin: 20px 0 0; color: #d9cbb8; font-size: 17px; }
 .detras-texto strong { color: var(--sol); font-weight: 600; }
 .detras-texto .boton { margin-top: 30px; }
 
@@ -190,7 +190,7 @@
 .testimonio figcaption { margin-top: 20px; font-size: 14px; }
 .testimonio figcaption strong { display: block; }
 .testimonio figcaption span { color: var(--tinta-suave); }
-.testimonio:first-child figcaption span { color: #d4d2d0; }
+.testimonio:first-child figcaption span { color: #d9cbb8; }
 
 /* ---------- Llamado a encargos ---------- */
 .home-encargos {
@@ -203,7 +203,7 @@
 /* ---------- Footer ---------- */
 .site-footer {
   display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 40px; padding: 64px 6vw 32px;
-  background: var(--tinta); color: #d4d2d0;
+  background: var(--tinta); color: #d9cbb8;
 }
 .footer-marca { display: flex; gap: 16px; align-items: flex-start; }
 .footer-marca img { width: 54px; height: 54px; border-radius: 50%; object-fit: cover; }
@@ -214,7 +214,7 @@
 .footer-columna strong { color: var(--tiza); font-weight: 600; }
 .footer-columna button { padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
 .footer-columna button:hover { color: var(--sol); }
-.footer-legal { grid-column: 1 / -1; margin: 16px 0 0; padding-top: 24px; border-top: 1px solid rgba(255, 255, 255, .15); color: #b9b6b4; font-size: 13px; }
+.footer-legal { grid-column: 1 / -1; margin: 16px 0 0; padding-top: 24px; border-top: 1px solid rgba(255, 255, 255, .15); color: #b8a58f; font-size: 13px; }
 
 /* ---------- Nosotros ---------- */
 .pagina-portada {
@@ -226,7 +226,7 @@
   background: url('/images/home-buffet.jpg') 30% 50% / cover no-repeat;
   transform: translate3d(0, var(--parallax, 0px), 0);
 }
-.pagina-portada::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(0deg, rgba(20, 20, 20, .85), rgba(20, 20, 20, .25)); }
+.pagina-portada::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(0deg, rgba(40, 25, 12, .85), rgba(40, 25, 12, .25)); }
 .pagina-portada-texto { max-width: 760px; animation: aparecer .9s ease both; }
 .pagina-portada h1 { margin: 0; color: var(--tiza); font-size: clamp(40px, 5.5vw, 76px); line-height: 1.02; }
 .pagina-portada p { margin: 18px 0 0; color: var(--sol); font-size: 19px; }
@@ -276,7 +276,7 @@
 .sede:first-child h2 { color: var(--tiza); }
 .sede-direccion { margin: 12px 0 0; font-size: 17px; font-weight: 600; }
 .sede-direccion span { display: block; color: var(--tinta-suave); font-weight: 400; font-size: 15px; }
-.sede:first-child .sede-direccion span, .sede:first-child .sede-nota { color: #d4d2d0; }
+.sede:first-child .sede-direccion span, .sede:first-child .sede-nota { color: #d9cbb8; }
 .sede-horario { margin: 18px 0 0; padding: 0; list-style: none; font-size: 15px; line-height: 1.7; }
 .sede-telefono { margin: 14px 0 0; font-variant-numeric: tabular-nums; }
 .sede-nota { margin: 14px 0 0; color: var(--tinta-suave); font-size: 14px; font-style: italic; }
@@ -364,4 +364,4 @@
   --tiza: var(--tinta);
   border: 0; border-radius: 0; background: var(--hoja-insumo); box-shadow: none; clip-path: var(--corte);
 }
-.site .pizarra-bloque h3 { border-bottom-color: rgba(39, 39, 39, .3); }
+.site .pizarra-bloque h3 { border-bottom-color: rgba(84, 53, 26, .3); }

@@ -4,7 +4,7 @@ import { Line, OrbitControls, Text } from '@react-three/drei';
 import * as THREE from 'three';
 import type { Line2 } from 'three-stdlib';
 import type { Capa, Grafo, Nodo } from '../features/graph/types';
-import { AFECTADO, CAPA_HOJA, CAPA_NODO, TINTA, TINTA_SUAVE } from '../features/graph/paleta';
+import { ACTIVO, AFECTADO, CAPA_HOJA, CAPA_NODO, HILO, TINTA, TINTA_SUAVE } from '../features/graph/paleta';
 
 /**
  * Mapa de la red de abastecimiento, de izquierda a derecha:
@@ -37,7 +37,6 @@ const DESFASE_HOJA: Record<Capa, number> = { proveedor: 0, insumo: 0.4, proceso:
 const ALTURA_HILOS = 0.42;
 
 const FONDO = '#ffffff';
-const HILO = '#a9a6a2';
 const INCLINACION_MESA = -0.05;
 /** Inclinación del corte de las hojas: la esquina inferior derecha va a 54°. */
 const PENDIENTE_CORTE = Math.tan(THREE.MathUtils.degToRad(54));
@@ -386,7 +385,7 @@ function Nodo3D({
     esfera.current.scale.setScalar(damp(esfera.current.scale.x, tamano, 8, dt));
     esfera.current.position.z = movimiento ? Math.sin(state.clock.elapsedTime * 0.7 + fase) * 0.05 : 0;
     if (material.current) {
-      colorDestino.set(activo ? TINTA : CAPA_NODO[nodo.capa]);
+      colorDestino.set(activo ? ACTIVO : CAPA_NODO[nodo.capa]);
       material.current.color.lerp(colorDestino, 1 - Math.exp(-6 * dt));
     }
   }, -1);
