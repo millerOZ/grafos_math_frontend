@@ -4,6 +4,8 @@ import { getImpacto } from './getProducts';
 
 interface ImpactoState {
   impacto: ImpactoResponse | null;
+  /** Última respuesta recibida, aunque sea de otro nodo; se borra al deseleccionar. */
+  ultimoImpacto: ImpactoResponse | null;
   error: string | null;
   cargando: boolean;
 }
@@ -17,6 +19,7 @@ interface Resultado {
 /** Consulta GET /impacto/{id} cada vez que cambia el nodo seleccionado. */
 export function useImpacto(nodeId: string | null): ImpactoState {
   const [resultado, setResultado] = useState<Resultado | null>(null);
+  if (!nodeId && resultado) setResultado(null);
 
   useEffect(() => {
     if (!nodeId) return;
@@ -40,6 +43,7 @@ export function useImpacto(nodeId: string | null): ImpactoState {
   const actual = nodeId && resultado?.id === nodeId ? resultado : null;
   return {
     impacto: actual?.impacto ?? null,
+    ultimoImpacto: resultado?.impacto ?? null,
     error: actual?.error ?? null,
     cargando: Boolean(nodeId) && !actual,
   };

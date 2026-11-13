@@ -3,12 +3,38 @@ import { ETIQUETAS_CAPA } from '../features/graph/domain/dependencyRules';
 import { useElementRegistration } from '../features/graph/hooks/useElementRegistration';
 
 // En el orden en que se construye la red: cada capa necesita la anterior.
-const LAYERS: Capa[] = ['proveedor', 'insumo', 'producto'];
-const ID_PLACEHOLDER: Record<Capa, string> = {
-  proveedor: 'PRV-...',
-  insumo: 'INS-...',
-  producto: 'PRD-...',
+// El proceso no exige nada al crearse: se conecta después con "Conectar".
+const LAYERS: Capa[] = ['proveedor', 'insumo', 'proceso', 'producto'];
+
+// Ejemplos reales de una panadería y cafetería para orientar cada campo.
+const EJEMPLO: Record<Capa, { id: string; nombre: string; ayuda: string }> = {
+  proveedor: {
+    id: 'PRV-MOLINO',
+    nombre: 'Molino La Estrella',
+    ayuda: 'La empresa que nos vende y nos entrega mercancía.',
+  },
+  insumo: {
+    id: 'INS-MANTEQUILLA',
+    nombre: 'Mantequilla sin sal',
+    ayuda: 'Lo que compramos para preparar: harina, leche, café en grano, bolsas.',
+  },
+  proceso: {
+    id: 'PRC-LAMINAR',
+    nombre: 'Laminar masa hojaldre',
+    ayuda: 'Un paso del obrador: amasar, fermentar, hornear, empacar.',
+  },
+  producto: {
+    id: 'PRD-CROISSANT',
+    nombre: 'Croissant de mantequilla',
+    ayuda: 'Lo que vendemos en la vitrina o en la barra de café.',
+  },
 };
+
+// Categorías que ya usa la panadería; se sugieren, pero se puede escribir otra.
+const CATEGORIAS = [
+  'Materia prima', 'Lácteos', 'Café y bebidas', 'Empaque',
+  'Insumo químico', 'Panadería', 'Repostería', 'Barra de café',
+];
 
 export default function ElementRegister({
   grafo,
@@ -27,12 +53,8 @@ export default function ElementRegister({
 
   return (
     <section className="register-card" aria-labelledby="element-title">
-      <div className="register-card-heading">
-        <div>
-          <p className="panel-kicker">Nuevo elemento</p>
-          <h2 id="element-title">Registrar en el catálogo</h2>
-        </div>
-      </div>
+      <h2 id="element-title">Agregar al catálogo</h2>
+      <p className="register-card-ayuda">{EJEMPLO[layer].ayuda}</p>
       <form onSubmit={submit}>
         <label htmlFor="element-layer">Tipo de elemento</label>
         <select
@@ -44,23 +66,44 @@ export default function ElementRegister({
           {LAYERS.map((capa) => <option value={capa} key={capa}>{ETIQUETAS_CAPA[capa]}</option>)}
         </select>
 
-        <label htmlFor="element-id">Identificador</label>
+        <label htmlFor="element-id">Código interno</label>
         <input
           id="element-id"
           value={id}
-          placeholder={ID_PLACEHOLDER[layer]}
+          placeholder={`Ej. ${EJEMPLO[layer].id}`}
+          autoComplete="off"
+          spellCheck={false}
           onChange={(event) => setId(event.target.value)}
         />
 
         <label htmlFor="element-name">Nombre</label>
-        <input id="element-name" value={name} onChange={(event) => setName(event.target.value)} />
+        <input
+          id="element-name"
+          value={name}
+          placeholder={`Ej. ${EJEMPLO[layer].nombre}`}
+          onChange={(event) => setName(event.target.value)}
+        />
 
         <label htmlFor="element-category">Categoría (opcional)</label>
-        <input id="element-category" value={category} onChange={(event) => setCategory(event.target.value)} />
+        <input
+          id="element-category"
+          list="categorias-sugeridas"
+          value={category}
+          onChange={(event) => setCategory(event.target.value)}
+        />
+        <datalist id="categorias-sugeridas">
+          {CATEGORIAS.map((c) => <option value={c} key={c} />)}
+        </datalist>
 
         {sinRequisitos && requiredLayer && (
           <p className="form-message">
             Primero registra un {ETIQUETAS_CAPA[requiredLayer].toLowerCase()}: este elemento debe enlazarse a uno.
+          </p>
+        )}
+
+        {layer === 'proceso' && (
+          <p className="form-message">
+            El proceso se crea suelto. Después, en «Conectar», indica qué insumos usa y qué paso va antes.
           </p>
         )}
 
@@ -101,7 +144,7 @@ export default function ElementRegister({
           type="submit"
           disabled={sending || sinRequisitos}
         >
-          {sending ? 'Registrando…' : 'Registrar elemento'} <span aria-hidden="true">→</span>
+          {sending ? "Guardando…" : "Guardar en el catálogo"}
         </button>
         {message && <p className="form-message" role="status">{message}</p>}
       </form>

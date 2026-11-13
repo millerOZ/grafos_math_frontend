@@ -24,6 +24,8 @@ function FloatingShape({ position, color, size = 0.5, speed = 1 }: {
       <sphereGeometry args={[size, 16, 16]} />
       <meshStandardMaterial
         color={color}
+        emissive={color}
+        emissiveIntensity={0.25}
         roughness={0.3}
         metalness={0.2}
       />
@@ -31,9 +33,10 @@ function FloatingShape({ position, color, size = 0.5, speed = 1 }: {
   );
 }
 
-function ConnectingLine({ start, end }: {
+function ConnectingLine({ start, end, color }: {
   start: [number, number, number];
   end: [number, number, number];
+  color: string;
 }) {
   const points = [
     new THREE.Vector3(...start),
@@ -43,33 +46,36 @@ function ConnectingLine({ start, end }: {
 
   const line = new THREE.Line(
     lineGeometry,
-    new THREE.LineBasicMaterial({ color: '#C4A577', opacity: 0.3, transparent: true }),
+    new THREE.LineBasicMaterial({ color, opacity: 0.45, transparent: true }),
   );
 
   return <primitive object={line} />;
 }
 
-export function FloatingElements3D() {
+const COLORES_BASE = ["#b0843c", "#6f8a55", "#b86a45", "#7a5230", "#dc4a38"];
+
+/** `colores` permite usar la escena sobre fondos oscuros (5 colores, uno por nodo). */
+export function FloatingElements3D({ colores = COLORES_BASE, linea = "#54351a" }: { colores?: string[]; linea?: string }) {
   return (
     <Canvas
       camera={{ position: [0, 0, 8], fov: 45 }}
       style={{ background: 'transparent' }}
     >
-      <ambientLight intensity={0.5} />
-      <pointLight position={[10, 10, 10]} intensity={1} />
-      <pointLight position={[-10, -10, -10]} intensity={0.5} color="#C4A577" />
+      <ambientLight intensity={1.1} />
+      <pointLight position={[10, 10, 10]} intensity={1.6} />
+      <pointLight position={[-10, -10, -10]} intensity={0.5} color="#ffffff" />
 
       {/* Floating nodes representing graph connections */}
-      <FloatingShape position={[-2, 1, 0]} color="#C4A577" size={0.4} speed={0.8} />
-      <FloatingShape position={[2, -1, 0]} color="#6B6B6B" size={0.35} speed={1.2} />
-      <FloatingShape position={[0, 0.5, -1]} color="#E8DED2" size={0.3} speed={1} />
-      <FloatingShape position={[1.5, 1.5, 0.5]} color="#A67C52" size={0.25} speed={0.9} />
-      <FloatingShape position={[-1.5, -0.8, 0.3]} color="#2E2E2E" size={0.28} speed={1.1} />
+      <FloatingShape position={[-2, 1, 0]} color={colores[0]} size={0.4} speed={0.8} />
+      <FloatingShape position={[2, -1, 0]} color={colores[1]} size={0.35} speed={1.2} />
+      <FloatingShape position={[0, 0.5, -1]} color={colores[2]} size={0.3} speed={1} />
+      <FloatingShape position={[1.5, 1.5, 0.5]} color={colores[3]} size={0.25} speed={0.9} />
+      <FloatingShape position={[-1.5, -0.8, 0.3]} color={colores[4]} size={0.28} speed={1.1} />
 
       {/* Subtle connecting lines */}
-      <ConnectingLine start={[-2, 1, 0]} end={[0, 0.5, -1]} />
-      <ConnectingLine start={[2, -1, 0]} end={[0, 0.5, -1]} />
-      <ConnectingLine start={[1.5, 1.5, 0.5]} end={[0, 0.5, -1]} />
+      <ConnectingLine start={[-2, 1, 0]} end={[0, 0.5, -1]} color={linea} />
+      <ConnectingLine start={[2, -1, 0]} end={[0, 0.5, -1]} color={linea} />
+      <ConnectingLine start={[1.5, 1.5, 0.5]} end={[0, 0.5, -1]} color={linea} />
     </Canvas>
   );
 }
