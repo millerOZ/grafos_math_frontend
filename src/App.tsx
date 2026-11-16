@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "./App.css";
 import DependencyRegister from "./components/DependencyRegister";
 import { VisualizationPage } from "./features/graph/components/VisualizationPage";
@@ -6,9 +6,10 @@ import { HomePage, type DestinoSitio } from "./features/site/HomePage";
 import { NosotrosPage } from "./features/site/NosotrosPage";
 import { VisitanosPage } from "./features/site/VisitanosPage";
 import { MOCK_GRAFO } from "./features/graph/data/mockGraph";
-import { getAristas, getInsumos, getProcesos, getProducts, getProveedores } from "./features/graph/hooks/getProducts";
+import { getGrafo } from "./features/graph/hooks/getProducts";
 import { useOrdenProduccion } from "./features/graph/hooks/useOrdenProduccion";
-import type { Arista, Grafo } from "./features/graph/types";
+import { useAlertaCiclo } from "./features/graph/hooks/useAlertaCiclo";
+import type { Grafo } from "./features/graph/types";
 
 type VistaPublica = "inicio" | "nosotros" | "visitanos";
 type VistaPanel = "registro" | "red" | "impacto" | "orden";
@@ -68,11 +69,12 @@ function App() {
   const [view, setView] = useState<View>("inicio");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [graph, setGraph] = useState<Grafo>(MOCK_GRAFO);
-  const hasLoadedData = useRef(false);
+  const ultimaRecarga = useRef(0);
 
   // Se consulta aquí (y no en la vista) porque la navegación también avisa los ciclos.
   const ordenProduccion = useOrdenProduccion(graph);
   const totalCiclos = ordenProduccion.orden?.ciclos.length ?? 0;
+  useAlertaCiclo(ordenProduccion.orden ? totalCiclos : null);
 
   const resumen = useMemo(() => ({
     proveedores: graph.nodos.filter((n) => n.capa === "proveedor").length,
@@ -101,85 +103,23 @@ function App() {
   const navegarSitio = (destino: DestinoSitio) =>
     openView(destino === "panel" ? ROLES[rol].vistas[0].id : destino);
 
-  const addDependency = (edge: Arista) => {
-    setGraph((current) => ({
-      ...current,
-      aristas: [...current.aristas, edge],
-    }));
-  };
-
-  const removeDependencies = (ids: string[]) => {
-    setGraph((current) => ({
-      ...current,
-      aristas: current.aristas.filter((edge) => !ids.includes(edge.id)),
-    }));
-  };
-
-  const appendNodes = (nodes: Grafo["nodos"]) => {
-    setGraph((current) => ({
-      ...current,
-      nodos: [...current.nodos, ...nodes],
-    }));
-  };
-
-  const loadProducts = async () => {
-    try {
-      const products = await getProducts();
-      console.log("Producto", products);
-      appendNodes(products);
-    } catch (error) {
-      console.error("No se pudieron cargar los productos:", error);
-    }
-  };
-  const loadProcesos = async () => {
-    try {
-      appendNodes(await getProcesos());
-    } catch (err) {
-      console.error(err);
-    }
-  };
-  const loadInsumos = async () => {
-    try {
-      const insumos = await getInsumos();
-      console.log("Insumo ", insumos);
-      appendNodes(insumos);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-  const loadProveedores = async () => {
-    try {
-      const proveedores = await getProveedores();
-      console.log("Proveedor ", proveedores);
-      appendNodes(proveedores);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-  const loadAristas = async () => {
-    try {
-      const aristas = await getAristas();
-      console.log("Aristas ", aristas);
-      aristas.forEach((item) => addDependency(item));
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  /**
+   * Vuelve a pedir GET /grafo y reemplaza el grafo completo. Se llama al
+   * cargar y después de cada POST o DELETE: el front nunca arma nodos ni
+   * aristas por su cuenta, así los ids siempre son los que asignó el back.
+   *
+   * Si llegan dos recargas casi juntas, solo se aplica la más reciente.
+   * Rechaza si el back falla, para que quien la llamó pueda avisarlo.
+   */
+  const recargarGrafo = useCallback(async () => {
+    const pedido = ++ultimaRecarga.current;
+    const grafo = await getGrafo();
+    if (pedido === ultimaRecarga.current) setGraph(grafo);
+  }, []);
 
   useEffect(() => {
-    if (hasLoadedData.current) {
-      return;
-    }
-
-    hasLoadedData.current = true;
-    void Promise.all([
-      loadProducts(),
-      loadProcesos(),
-      loadInsumos(),
-      loadProveedores(),
-      loadAristas(),
-    ]);
-  }, []);
+    recargarGrafo().catch((err) => console.error("No se pudo cargar el grafo:", err));
+  }, [recargarGrafo]);
 
   const verGrafo =
     (rol === "compras" && view === "red") ||
@@ -250,11 +190,7 @@ function App() {
       {view === "nosotros" && <NosotrosPage onNavigate={navegarSitio} />}
       {view === "visitanos" && <VisitanosPage onNavigate={navegarSitio} />}
       {rol === "compras" && view === "registro" && (
-        <DependencyRegister
-          grafo={graph}
-          onAdd={addDependency}
-          onAddNode={(node) => appendNodes([node])}
-        />
+        <DependencyRegister grafo={graph} onGuardado={recargarGrafo} />
       )}
       {verGrafo && (
         <VisualizationPage
@@ -263,7 +199,7 @@ function App() {
           selectedId={selectedId}
           onSelect={setSelectedId}
           ordenProduccion={ordenProduccion}
-          onRemoveDependencies={removeDependencies}
+          onGuardado={recargarGrafo}
           onBack={() => openView("inicio")}
           onOpenRegistro={rol === "compras" ? () => openView("registro") : undefined}
         />

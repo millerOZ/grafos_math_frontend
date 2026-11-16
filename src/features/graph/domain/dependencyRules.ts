@@ -1,4 +1,4 @@
-import type { Capa, Nodo } from '../types';
+import type { Arista, Capa, Grafo, Nodo } from '../types';
 
 export interface ReglaDependencia {
   origen: Capa;
@@ -26,6 +26,27 @@ export function esDependenciaPermitida(origen: Nodo, destino: Nodo): boolean {
   return REGLAS_DEPENDENCIA.some(
     (regla) => regla.origen === origen.capa && regla.destino === destino.capa,
   );
+}
+
+export interface RelacionGuardada {
+  arista: Arista;
+  origen: Nodo;
+  destino: Nodo;
+}
+
+/**
+ * Dependencias del grafo con sus dos extremos resueltos, para listarlas.
+ * Se omiten las que apuntan a un elemento que no existe o rompen la regla de capas.
+ */
+export function relacionesValidas(grafo: Grafo): RelacionGuardada[] {
+  const porId = new Map(grafo.nodos.map((n) => [n.id, n]));
+  return grafo.aristas.flatMap((arista) => {
+    const origen = porId.get(arista.origen);
+    const destino = porId.get(arista.destino);
+    return origen && destino && esDependenciaPermitida(origen, destino)
+      ? [{ arista, origen, destino }]
+      : [];
+  });
 }
 
 /**

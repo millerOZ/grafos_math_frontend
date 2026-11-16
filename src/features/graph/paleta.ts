@@ -24,3 +24,5 @@ export const AFECTADO = '#dc4a38';
 /** Nodo elegido: más oscuro que el café de los productos, para no confundirlos. */
 export const ACTIVO = '#24160a';
 export const HILO = '#c8b8a2';
+/** Procesos y dependencias que forman un ciclo (mismo rojo que --alerta). */
+export const CICLO = '#b0372a';

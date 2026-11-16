@@ -21,7 +21,7 @@ export interface Grafo {
 
 // --- Impacto: GET /impacto/{id} ---
 
-export type CasoImpacto = 'inexistente' | 'sin_dependencias' | 'afecta_cadena';
+export type CasoImpacto = 'id_invalido' | 'inexistente' | 'sin_dependencias' | 'afecta_cadena';
 
 export interface NodoImpactado {
   id: string;

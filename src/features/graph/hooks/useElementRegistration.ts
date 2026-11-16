@@ -1,5 +1,5 @@
 import { useMemo, useState, type FormEvent } from 'react';
-import type { Arista, Capa, Grafo, Nodo } from '../types';
+import type { Capa, Grafo, Nodo } from '../types';
 import { siguienteCapa } from '../domain/dependencyRules';
 import { crearInsumo, crearProceso, crearProducto, crearProveedor } from './getProducts';
 
@@ -19,6 +19,8 @@ interface ElementRegistrationState {
   requiredLayer: Capa | null;
   candidates: Nodo[];
   message: string;
+  /** Define el color del mensaje: error en rojo, aviso en ámbar, ok en verde. */
+  messageType: TipoMensaje;
   sending: boolean;
   submit: (event: FormEvent<HTMLFormElement>) => void;
   setLayer: (layer: Capa) => void;
@@ -29,17 +31,24 @@ interface ElementRegistrationState {
   toggleInsumo: (id: string) => void;
 }
 
+export type TipoMensaje = 'ok' | 'error' | 'aviso';
+
 export function useElementRegistration(
   graph: Grafo,
-  onAddNode: (node: Nodo) => void,
-  onAddEdge: (edge: Arista) => void,
+  /** Vuelve a pedir GET /grafo; trae el nodo nuevo y las aristas que creó el back. */
+  onGuardado: () => Promise<void>,
 ): ElementRegistrationState {
   const [layer, setLayerState] = useState<Capa>('proveedor');
   const [id, setId] = useState('');
   const [name, setName] = useState('');
   const [category, setCategory] = useState('');
   const [requiredIds, setRequiredIds] = useState<string[]>([]);
-  const [message, setMessage] = useState('');
+  const [message, setMessageText] = useState('');
+  const [messageType, setMessageType] = useState<TipoMensaje>('error');
+  const setMessage = (texto: string, tipo: TipoMensaje = 'error') => {
+    setMessageText(texto);
+    setMessageType(tipo);
+  };
   const [sending, setSending] = useState(false);
   const requiredLayer = siguienteCapa(layer);
   const candidates = useMemo(
@@ -98,21 +107,18 @@ export function useElementRegistration(
       } else {
         node = await crearProducto({ ...datos, insumo_ids: requiredIds });
       }
-      onAddNode(node);
-      // El back también registra las dependencias del nuevo elemento (nuevo → requerido).
-      requiredIds.forEach((requiredId, index) => {
-        onAddEdge({
-          id: `e${String(graph.aristas.length + 1 + index).padStart(2, '0')}`,
-          origen: node.id,
-          destino: requiredId,
-          tipo: 'REQUIERE',
-        });
-      });
       setId('');
       setName('');
       setCategory('');
       setRequiredIds([]);
-      setMessage(`${node.nombre} quedó guardado en el catálogo.`);
+      // El back también registró las dependencias del nuevo elemento (nuevo → requerido)
+      // con sus propios ids: se piden de nuevo en vez de armarlas aquí.
+      try {
+        await onGuardado();
+        setMessage(`${node.nombre} quedó guardado en el catálogo.`, 'ok');
+      } catch {
+        setMessage(`${node.nombre} quedó guardado, pero no se pudo actualizar la red. Recarga la página.`, 'aviso');
+      }
     } catch (err) {
       setMessage(err instanceof Error ? err.message : 'No se pudo registrar el elemento.');
     } finally {
@@ -129,10 +135,12 @@ export function useElementRegistration(
     requiredLayer,
     candidates,
     message,
+    messageType,
     sending,
     submit: (event) => void submit(event),
     setLayer,
-    setId,
+    // El back exige ids en mayúsculas (PRV-MOLINO); se convierten mientras se escribe.
+    setId: (value: string) => setId(value.toUpperCase()),
     setName,
     setCategory,
     setProviderId,

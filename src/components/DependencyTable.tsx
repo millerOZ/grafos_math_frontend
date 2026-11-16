@@ -1,14 +1,10 @@
 import { useMemo, useState } from 'react';
-import type { Arista, Nodo } from '../features/graph/types';
-import { ETIQUETAS_CAPA } from '../features/graph/domain/dependencyRules';
+import type { Nodo } from '../features/graph/types';
+import { ETIQUETAS_CAPA, type RelacionGuardada } from '../features/graph/domain/dependencyRules';
 
 const POR_PAGINA = 10;
 
-interface Fila {
-  arista: Arista;
-  origen: Nodo;
-  destino: Nodo;
-}
+type Fila = RelacionGuardada;
 
 // Sin tildes ni mayúsculas, para que "azucar" encuentre "Azúcar refinada".
 const normalizar = (texto: string) =>

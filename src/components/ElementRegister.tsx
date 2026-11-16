@@ -1,4 +1,4 @@
-import type { Arista, Capa, Grafo, Nodo } from '../features/graph/types';
+import type { Capa, Grafo } from '../features/graph/types';
 import { ETIQUETAS_CAPA } from '../features/graph/domain/dependencyRules';
 import { useElementRegistration } from '../features/graph/hooks/useElementRegistration';
 
@@ -38,17 +38,15 @@ const CATEGORIAS = [
 
 export default function ElementRegister({
   grafo,
-  onAddNode,
-  onAddEdge,
+  onGuardado,
 }: {
   grafo: Grafo;
-  onAddNode: (nodo: Nodo) => void;
-  onAddEdge: (arista: Arista) => void;
+  onGuardado: () => Promise<void>;
 }) {
   const {
-    layer, id, name, category, requiredIds, requiredLayer, candidates, message, sending,
+    layer, id, name, category, requiredIds, requiredLayer, candidates, message, messageType, sending,
     submit, setLayer, setId, setName, setCategory, setProviderId, toggleInsumo,
-  } = useElementRegistration(grafo, onAddNode, onAddEdge);
+  } = useElementRegistration(grafo, onGuardado);
   const sinRequisitos = requiredLayer !== null && candidates.length === 0;
 
   return (
@@ -146,7 +144,11 @@ export default function ElementRegister({
         >
           {sending ? "Guardando…" : "Guardar en el catálogo"}
         </button>
-        {message && <p className="form-message" role="status">{message}</p>}
+        {message && (
+          <p className={`form-message ${messageType}`} role={messageType === 'error' ? 'alert' : 'status'}>
+            {message}
+          </p>
+        )}
       </form>
     </section>
   );

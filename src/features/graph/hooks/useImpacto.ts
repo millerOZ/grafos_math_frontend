@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { ImpactoResponse } from '../types';
+import type { Grafo, ImpactoResponse } from '../types';
 import { getImpacto } from './getProducts';
 
 interface ImpactoState {
@@ -16,13 +16,17 @@ interface Resultado {
   error: string | null;
 }
 
-/** Consulta GET /impacto/{id} cada vez que cambia el nodo seleccionado. */
-export function useImpacto(nodeId: string | null): ImpactoState {
+/**
+ * Consulta GET /impacto/{id} cada vez que cambia el nodo seleccionado o la red
+ * (`grafo`), para que el resultado no quede viejo tras registrar o quitar una
+ * dependencia. Mientras llega la respuesta nueva se conserva la anterior.
+ */
+export function useImpacto(nodeId: string | null, grafo?: Grafo): ImpactoState {
   const [resultado, setResultado] = useState<Resultado | null>(null);
-  if (!nodeId && resultado) setResultado(null);
+  if (nodeId === null && resultado) setResultado(null);
 
   useEffect(() => {
-    if (!nodeId) return;
+    if (nodeId === null) return;
     let cancelado = false;
     getImpacto(nodeId)
       .then((impacto) => {
@@ -38,13 +42,13 @@ export function useImpacto(nodeId: string | null): ImpactoState {
     return () => {
       cancelado = true;
     };
-  }, [nodeId]);
+  }, [nodeId, grafo]);
 
-  const actual = nodeId && resultado?.id === nodeId ? resultado : null;
+  const actual = nodeId !== null && resultado?.id === nodeId ? resultado : null;
   return {
     impacto: actual?.impacto ?? null,
     ultimoImpacto: resultado?.impacto ?? null,
     error: actual?.error ?? null,
-    cargando: Boolean(nodeId) && !actual,
+    cargando: nodeId !== null && !actual,
   };
 }

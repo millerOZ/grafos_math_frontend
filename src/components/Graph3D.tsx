@@ -4,7 +4,8 @@ import { Line, OrbitControls, Text } from '@react-three/drei';
 import * as THREE from 'three';
 import type { Line2 } from 'three-stdlib';
 import type { Capa, Grafo, Nodo } from '../features/graph/types';
-import { ACTIVO, AFECTADO, CAPA_HOJA, CAPA_NODO, HILO, TINTA, TINTA_SUAVE } from '../features/graph/paleta';
+import { ACTIVO, AFECTADO, CAPA_HOJA, CAPA_NODO, CICLO, HILO, TINTA, TINTA_SUAVE } from '../features/graph/paleta';
+import { claveDependencia, type ResaltadoCiclo } from '../features/graph/domain/ordenVista';
 
 /**
  * Mapa de la red de abastecimiento, de izquierda a derecha:
@@ -292,7 +293,7 @@ function Hoja({ capa, rect, movimiento }: { capa: Capa; rect?: Rect; movimiento:
 }
 
 /** Onda que se abre sobre el papel cuando la falla alcanza un nodo; queda una marca debajo. */
-function Onda({ nivel, movimiento }: { nivel: number; movimiento: boolean }) {
+function Onda({ nivel, movimiento, color = AFECTADO }: { nivel: number; movimiento: boolean; color?: string }) {
   const aro = useRef<THREE.Mesh>(null);
   const marca = useRef<THREE.Mesh>(null);
   const inicio = useRef<number | null>(null);
@@ -322,24 +323,26 @@ function Onda({ nivel, movimiento }: { nivel: number; movimiento: boolean }) {
     <group position-z={-RADIO_NODO + 0.015}>
       <mesh ref={marca}>
         <circleGeometry args={[1, 48]} />
-        <meshBasicMaterial color={AFECTADO} transparent opacity={0} depthWrite={false} />
+        <meshBasicMaterial color={color} transparent opacity={0} depthWrite={false} />
       </mesh>
       <mesh ref={aro} visible={false}>
         <ringGeometry args={[0.94, 1, 64]} />
-        <meshBasicMaterial color={AFECTADO} transparent opacity={0} depthWrite={false} />
+        <meshBasicMaterial color={color} transparent opacity={0} depthWrite={false} />
       </mesh>
     </group>
   );
 }
 
 function Nodo3D({
-  nodo, destino, activo, nivel, seleccionado, movimiento, posicionesRef, onSelect,
+  nodo, destino, activo, nivel, enCiclo, seleccionado, movimiento, posicionesRef, onSelect,
 }: {
   nodo: Nodo;
   /** Sin destino, el nodo sale de la escena. */
   destino?: THREE.Vector3;
   activo: boolean;
   nivel?: number;
+  /** Proceso que forma parte de un ciclo: se pinta en rojo y late. */
+  enCiclo: boolean;
   seleccionado: string | null;
   movimiento: boolean;
   posicionesRef: Posiciones;
@@ -385,7 +388,7 @@ function Nodo3D({
     esfera.current.scale.setScalar(damp(esfera.current.scale.x, tamano, 8, dt));
     esfera.current.position.z = movimiento ? Math.sin(state.clock.elapsedTime * 0.7 + fase) * 0.05 : 0;
     if (material.current) {
-      colorDestino.set(activo ? ACTIVO : CAPA_NODO[nodo.capa]);
+      colorDestino.set(activo ? ACTIVO : enCiclo ? CICLO : CAPA_NODO[nodo.capa]);
       material.current.color.lerp(colorDestino, 1 - Math.exp(-6 * dt));
     }
   }, -1);
@@ -416,6 +419,7 @@ function Nodo3D({
         <meshStandardMaterial ref={material} color={CAPA_NODO[nodo.capa]} roughness={0.62} metalness={0} />
       </mesh>
       {nivel !== undefined && <Onda key={seleccionado} nivel={nivel} movimiento={movimiento} />}
+      {enCiclo && nivel === undefined && <Onda nivel={0} movimiento={movimiento} color={CICLO} />}
       <Text
         position={[0, 0.94, 0.1]}
         fontSize={0.46}
@@ -435,12 +439,14 @@ function Nodo3D({
 
 /** Hilo entre dos nodos, con una cuenta que recorre el camino del abastecimiento. */
 function Hilo({
-  desde, hacia, visible, nivel, seleccionado, movimiento, posicionesRef,
+  desde, hacia, visible, nivel, enCiclo, seleccionado, movimiento, posicionesRef,
 }: {
   desde: string;
   hacia: string;
   visible: boolean;
   nivel?: number;
+  /** Dependencia que cierra o forma un ciclo: se dibuja en rojo y más gruesa. */
+  enCiclo: boolean;
   seleccionado: string | null;
   movimiento: boolean;
   posicionesRef: Posiciones;
@@ -458,6 +464,7 @@ function Hilo({
   const arriba = useMemo(() => new THREE.Vector3(0, 1, 0), []);
   const colorBase = useMemo(() => new THREE.Color(HILO), []);
   const colorFalla = useMemo(() => new THREE.Color(AFECTADO), []);
+  const colorCiclo = useMemo(() => new THREE.Color(CICLO), []);
   const colorActual = useMemo(() => new THREE.Color(), []);
   const fase = useMemo(() => [...(desde + hacia)].reduce((s, c) => s * 31 + c.charCodeAt(0), 7) % 1000 / 1000, [desde, hacia]);
 
@@ -502,7 +509,8 @@ function Hilo({
       if (inicio.current === null) inicio.current = ahora + DEMORA_ONDA + (nivel - 1) * RETRASO_NIVEL;
       falla = movimiento ? clamp((ahora - inicio.current) / DURACION_ONDA, 0, 1) : 1;
     }
-    colorActual.copy(colorBase).lerp(colorFalla, falla);
+    if (enCiclo) colorActual.copy(colorCiclo);
+    else colorActual.copy(colorBase).lerp(colorFalla, falla);
 
     hilo.visible = opaco > 0.01;
     hilo.material.color.copy(colorActual);
@@ -527,7 +535,7 @@ function Hilo({
         ref={linea}
         points={puntos}
         color={HILO}
-        lineWidth={1.5}
+        lineWidth={enCiclo ? 3.5 : 1.5}
         transparent
         opacity={0}
         frustumCulled={false}
@@ -551,12 +559,14 @@ interface Graph3DProps {
   seleccionado: string | null;
   /** Nivel de contagio de cada nodo afectado (viene de GET /impacto). */
   niveles: Map<string, number> | null;
+  /** Procesos y dependencias de los ciclos (viene de GET /orden-produccion). */
+  ciclo?: ResaltadoCiclo | null;
   /** Con false, todo llega a su lugar de inmediato y no hay animación de ambiente. */
   movimiento: boolean;
   onSelect: (id: string | null) => void;
 }
 
-function Escena({ grafo, visibles, seleccionado, niveles, movimiento, onSelect }: Graph3DProps) {
+function Escena({ grafo, visibles, seleccionado, niveles, ciclo, movimiento, onSelect }: Graph3DProps) {
   const layoutCompleto = useMemo(() => calcularLayout(grafo), [grafo]);
   const layout = useMemo(() => {
     if (!visibles) return layoutCompleto;
@@ -621,6 +631,7 @@ function Escena({ grafo, visibles, seleccionado, niveles, movimiento, onSelect }
             destino={layout.pos.get(n.id)}
             activo={seleccionado === n.id}
             nivel={niveles?.get(n.id)}
+            enCiclo={ciclo?.nodos.has(n.id) ?? false}
             seleccionado={seleccionado}
             movimiento={movimiento}
             posicionesRef={posicionesRef}
@@ -639,6 +650,7 @@ function Escena({ grafo, visibles, seleccionado, niveles, movimiento, onSelect }
               hacia={ar.origen}
               visible={layout.pos.has(ar.origen) && layout.pos.has(ar.destino)}
               nivel={enFalla ? Math.max(niveles?.get(ar.origen) ?? 0, niveles?.get(ar.destino) ?? 0) : undefined}
+              enCiclo={ciclo?.aristas.has(claveDependencia(ar.origen, ar.destino)) ?? false}
               seleccionado={seleccionado}
               movimiento={movimiento}
               posicionesRef={posicionesRef}

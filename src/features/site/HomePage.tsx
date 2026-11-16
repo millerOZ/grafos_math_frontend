@@ -2,6 +2,7 @@ import { Suspense, lazy, useState } from 'react';
 import { DIA_OBRADOR, TESTIMONIOS, VITRINA, formatoPrecio } from './content';
 import { useParallax, useReveal, useScrollProgress } from './useScrollEffects';
 import { SiteFooter } from './SiteFooter';
+import { IntroCarga } from './IntroCarga';
 import './site.css';
 
 // La escena 3D pesa; se carga solo cuando se llega a esa sección.
@@ -31,6 +32,7 @@ export function HomePage({ onNavigate, resumen }: HomePageProps) {
 
   return (
     <main className="site home">
+      <IntroCarga />
       <section className="home-hero" ref={heroRef}>
         <div className="home-hero-foto" aria-hidden="true" />
         <div className="home-hero-contenido">

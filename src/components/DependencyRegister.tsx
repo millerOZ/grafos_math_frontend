@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import type { Arista, Grafo, Nodo } from '../features/graph/types';
-import { esDependenciaPermitida } from '../features/graph/domain/dependencyRules';
+import type { Grafo, Nodo } from '../features/graph/types';
+import { relacionesValidas } from '../features/graph/domain/dependencyRules';
 import DependencyConnect from './DependencyConnect';
 import DependencyTable from './DependencyTable';
 import ElementRegister from './ElementRegister';
@@ -15,22 +15,15 @@ import ElementRegister from './ElementRegister';
  */
 export default function DependencyRegister({
   grafo,
-  onAdd,
-  onAddNode,
+  onGuardado,
 }: {
   grafo: Grafo;
-  onAdd: (arista: Arista) => void;
-  onAddNode: (nodo: Nodo) => void;
+  /** Vuelve a pedir GET /grafo después de guardar algo en el back. */
+  onGuardado: () => Promise<void>;
 }) {
   const porId = useMemo(() => new Map(grafo.nodos.map((n) => [n.id, n])), [grafo.nodos]);
 
-  const validEdges = useMemo(() => grafo.aristas.flatMap((arista) => {
-    const origen = porId.get(arista.origen);
-    const destino = porId.get(arista.destino);
-    return origen && destino && esDependenciaPermitida(origen, destino)
-      ? [{ arista, origen, destino }]
-      : [];
-  }), [grafo.aristas, porId]);
+  const validEdges = useMemo(() => relacionesValidas(grafo), [grafo]);
 
   const conteo = useMemo(() => ({
     proveedor: grafo.nodos.filter((n) => n.capa === 'proveedor').length,
@@ -95,21 +88,6 @@ export default function DependencyRegister({
         </p>
       </header>
 
-      <section className="recepcion" aria-label="Datos para proveedores">
-        <div>
-          <h2>Recepción de mercancía</h2>
-          <p>Lunes a sábado, de 5:00 a 9:00 a. m., por la puerta de cargue.</p>
-        </div>
-        <div>
-          <h2>Pedidos a proveedores</h2>
-          <p>Lunes y jueves antes de las 10:00 a. m. Lácteos y levadura, a diario.</p>
-        </div>
-        <div>
-          <h2>Dirección</h2>
-          <p>Cra. 70 #44-21, Laureles, Medellín</p>
-        </div>
-      </section>
-
       <section className="catalogo-estado" aria-labelledby="estado-title">
         <div className="estado-resumen">
           <h2 id="estado-title">Estado del catálogo</h2>
@@ -135,8 +113,8 @@ export default function DependencyRegister({
       </section>
 
       <div className="register-forms">
-        <ElementRegister grafo={grafo} onAddNode={onAddNode} onAddEdge={onAdd} />
-        <DependencyConnect grafo={grafo} onAddEdge={onAdd} />
+        <ElementRegister grafo={grafo} onGuardado={onGuardado} />
+        <DependencyConnect grafo={grafo} onGuardado={onGuardado} />
       </div>
 
       <section className="hoja-proveedores" aria-labelledby="hoja-title">

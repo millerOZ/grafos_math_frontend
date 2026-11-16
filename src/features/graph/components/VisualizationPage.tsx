@@ -1,16 +1,20 @@
-import { useMemo, type CSSProperties } from "react";
+import { useMemo, useState, type CSSProperties, type FormEvent } from "react";
+import { EJEMPLOS_IMPACTO, resolverConsulta } from "../domain/consultaImpacto";
+import { nodosDeOrden, resaltarCiclos } from "../domain/ordenVista";
 import { useImpacto } from "../hooks/useImpacto";
 import { useMovimiento } from "../hooks/useMovimiento";
-import { AFECTADO, CAPA_HOJA, CAPA_NODO } from "../paleta";
+import { AFECTADO, CAPA_HOJA, CAPA_NODO, CICLO } from "../paleta";
 import type { Capa, Grafo, ImpactoResponse, Nodo, OrdenProduccionResponse } from "../types";
 import Graph3D from "../../../components/Graph3D";
 import { CiclosView } from "./CiclosView";
+import { ReiniciarDemo } from "./ReiniciarDemo";
 
 /**
  * - "red": vista del responsable de compras. Muestra la red y, al tocar un nodo,
  *   qué necesita y qué habilita (sin análisis de impacto).
  * - "impacto": vista del coordinador de producción. Simula una falla.
- * - "orden": vista del coordinador de producción. Orden de preparación y ciclos.
+ * - "orden": vista del coordinador de producción. Solo la cadena de procesos, con
+ *   el ciclo en rojo si lo hay, y al lado el orden o qué dependencia quitar.
  */
 export type ModoVisualizacion = "red" | "impacto" | "orden";
 
@@ -21,6 +25,12 @@ const LEGEND: { layer: Capa | "afectado"; color: string; label: string; detalle:
   { layer: "proceso", color: CAPA_NODO.proceso, label: "Proceso", detalle: "lo que hacemos en la planta" },
   { layer: "producto", color: CAPA_NODO.producto, label: "Producto", detalle: "lo que vendemos" },
   { layer: "afectado", color: AFECTADO, label: "Afectado", detalle: "se detiene por la falla" },
+];
+
+const LEGEND_ORDEN: { layer: "proceso" | "producto" | "ciclo"; color: string; label: string }[] = [
+  { layer: "proceso", color: CAPA_NODO.proceso, label: "Paso de preparación" },
+  { layer: "producto", color: CAPA_NODO.producto, label: "Producto" },
+  { layer: "ciclo", color: CICLO, label: "En ciclo" },
 ];
 
 const CAPA_META: Record<Capa, { color: string; label: string }> = {
@@ -55,8 +65,8 @@ interface VisualizationPageProps {
   onSelect: (id: string | null) => void;
   /** Respuesta de GET /orden-produccion (la consulta vive en App). */
   ordenProduccion: { orden: OrdenProduccionResponse | null; error: string | null; cargando: boolean };
-  /** Se llama después de quitar dependencias en el back, para actualizar la red. */
-  onRemoveDependencies: (ids: string[]) => void;
+  /** Vuelve a pedir GET /grafo después de quitar dependencias en el back. */
+  onGuardado: () => Promise<void>;
   onBack: () => void;
   /** Solo existe para el rol que puede registrar (compras). */
   onOpenRegistro?: () => void;
@@ -68,14 +78,34 @@ export function VisualizationPage({
   selectedId,
   onSelect,
   ordenProduccion,
-  onRemoveDependencies,
+  onGuardado,
   onBack,
   onOpenRegistro,
 }: VisualizationPageProps) {
+  const esImpacto = modo === "impacto";
+  // Id escrito a mano que no está en la red (inexistente o mal formado). Se consulta
+  // igual en el back para mostrar su respuesta; tocar el mapa lo descarta.
+  const [idManual, setIdManual] = useState<string | null>(null);
+  const consultado = esImpacto ? (selectedId ?? idManual) : null;
   // El impacto solo se consulta en la vista de producción.
-  const { impacto, ultimoImpacto, error, cargando } = useImpacto(modo === "impacto" ? selectedId : null);
+  const { impacto, ultimoImpacto, error, cargando } = useImpacto(consultado, graph);
   const [movimiento, alternarMovimiento] = useMovimiento();
   const selectedNode = graph.nodos.find((node) => node.id === selectedId);
+
+  const seleccionar = (id: string | null) => {
+    setIdManual(null);
+    onSelect(id);
+  };
+
+  const consultarId = (idEscrito: string) => {
+    const consulta = resolverConsulta(graph, idEscrito);
+    if (consulta.tipo === "seleccionar") {
+      seleccionar(consulta.id);
+    } else {
+      onSelect(null);
+      setIdManual(consulta.id);
+    }
+  };
   // Nivel de contagio por nodo (origen = 0), tal como lo devuelve el back, para animar el grafo.
   const niveles = useMemo(() => {
     if (!impacto?.origen) return null;
@@ -93,83 +123,149 @@ export function VisualizationPage({
     return new Set([referencia.origen.id, ...referencia.afectados.map((item) => item.id)]);
   }, [impacto, ultimoImpacto]);
 
-  const esImpacto = modo === "impacto";
+  if (modo === "orden") {
+    return (
+      <VistaOrden
+        graph={graph}
+        ordenProduccion={ordenProduccion}
+        movimiento={movimiento}
+        alternarMovimiento={alternarMovimiento}
+        onGuardado={onGuardado}
+        onOpenRegistro={onOpenRegistro}
+      />
+    );
+  }
 
   return (
-    <main className={`visualization-view ${modo === "orden" ? "solo" : ""}`}>
-      {modo !== "orden" ? (
-        <>
-          <div className="graph-stage">
-            <Graph3D
-              grafo={graph}
-              visibles={visibles}
-              seleccionado={selectedId}
-              niveles={esImpacto ? niveles : null}
-              movimiento={movimiento}
-              onSelect={onSelect}
-            />
-            <p className="graph-hint">
-              {esImpacto && selectedId
-                ? "Haz clic en un espacio vacío para volver al mapa completo."
-                : "Arrastra para mover el mapa. Usa la rueda del mouse para acercarte."}
-            </p>
-            <button className="graph-movimiento" type="button" onClick={alternarMovimiento}>
-              {movimiento ? "Pausar movimiento" : "Activar movimiento"}
-            </button>
-          </div>
-          <aside className="graph-panel">
-            {selectedNode && esImpacto && (
-              <ImpactTicket
-                node={selectedNode}
-                graph={graph}
-                impacto={impacto}
-                error={error}
-                cargando={cargando}
-              />
-            )}
-            {selectedNode && !esImpacto && <NodeDetail node={selectedNode} graph={graph} />}
-            {!selectedNode && (
-              <div className="empty-selection">
-                <p>
-                  {esImpacto
-                    ? "Elige un punto del mapa para ver qué se cae con él."
-                    : "Elige un punto del mapa para ver sus dependencias directas."}
-                </p>
-              </div>
-            )}
-            {!esImpacto && onOpenRegistro && (
-              <button className="ciclos-accion" type="button" onClick={onOpenRegistro}>
-                Registrar elemento o dependencia
-              </button>
-            )}
-            <div className="legend">
-              <h2 className="legend-title">Cómo leer el mapa</h2>
-              <p className="legend-intro">
-                Las flechas siguen el camino del abastecimiento: del proveedor hasta el producto.
-              </p>
-              {LEGEND.map((item) => (
-                <div className="legend-item" key={item.layer}>
-                  <span style={{ background: item.color }} />
-                  <strong>{item.label}</strong>
-                  <small>{item.detalle}</small>
-                </div>
-              ))}
-            </div>
-            <button className="back-button" type="button" onClick={onBack}>
-              Volver al inicio
-            </button>
-          </aside>
-        </>
-      ) : (
-        <div className="ciclos-stage">
-          <CiclosView
+    <main className="visualization-view">
+      <div className="graph-stage">
+        <Graph3D
+          grafo={graph}
+          visibles={visibles}
+          seleccionado={selectedId}
+          niveles={esImpacto ? niveles : null}
+          movimiento={movimiento}
+          onSelect={seleccionar}
+        />
+        <p className="graph-hint">
+          {esImpacto && selectedId
+            ? "Haz clic en un espacio vacío para volver al mapa completo."
+            : "Arrastra para mover el mapa. Usa la rueda del mouse para acercarte."}
+        </p>
+        <button className="graph-movimiento" type="button" onClick={alternarMovimiento}>
+          {movimiento ? "Pausar movimiento" : "Activar movimiento"}
+        </button>
+      </div>
+      <aside className="graph-panel">
+        {esImpacto && <ConsultaPorId onConsultar={consultarId} />}
+        {esImpacto && !selectedNode && idManual !== null && (
+          <ConsultaSinNodo id={idManual} impacto={impacto} error={error} cargando={cargando} />
+        )}
+        {selectedNode && esImpacto && (
+          <ImpactTicket
+            node={selectedNode}
             graph={graph}
-            {...ordenProduccion}
-            onRemoveDependencies={onRemoveDependencies}
-            onOpenRegistro={onOpenRegistro}
+            impacto={impacto}
+            error={error}
+            cargando={cargando}
           />
+        )}
+        {selectedNode && !esImpacto && <NodeDetail node={selectedNode} graph={graph} />}
+        {!selectedNode && idManual === null && (
+          <div className="empty-selection">
+            <p>
+              {esImpacto
+                ? "Elige un punto del mapa para ver qué se cae con él."
+                : "Elige un punto del mapa para ver sus dependencias directas."}
+            </p>
+          </div>
+        )}
+        {!esImpacto && onOpenRegistro && (
+          <button className="ciclos-accion" type="button" onClick={onOpenRegistro}>
+            Registrar elemento o dependencia
+          </button>
+        )}
+        <div className="legend">
+          <h2 className="legend-title">Cómo leer el mapa</h2>
+          <p className="legend-intro">
+            Las flechas siguen el camino del abastecimiento: del proveedor hasta el producto.
+          </p>
+          {LEGEND.map((item) => (
+            <div className="legend-item" key={item.layer}>
+              <span style={{ background: item.color }} />
+              <strong>{item.label}</strong>
+              <small>{item.detalle}</small>
+            </div>
+          ))}
         </div>
-      )}
+        <button className="back-button" type="button" onClick={onBack}>
+          Volver al inicio
+        </button>
+      </aside>
+    </main>
+  );
+}
+
+const sinSeleccion = () => {};
+
+/**
+ * Vista de orden: el mapa muestra solo la cadena de preparación (procesos y los
+ * productos que los usan) y, si hay un ciclo, lo marca en rojo. El panel dice
+ * el orden o qué dependencia quitar. Nada más, para que se lea de un vistazo.
+ */
+function VistaOrden({
+  graph,
+  ordenProduccion,
+  movimiento,
+  alternarMovimiento,
+  onGuardado,
+  onOpenRegistro,
+}: {
+  graph: Grafo;
+  ordenProduccion: VisualizationPageProps["ordenProduccion"];
+  movimiento: boolean;
+  alternarMovimiento: () => void;
+  onGuardado: () => Promise<void>;
+  onOpenRegistro?: () => void;
+}) {
+  const visibles = useMemo(() => nodosDeOrden(graph), [graph]);
+  const ciclo = useMemo(() => resaltarCiclos(ordenProduccion.orden), [ordenProduccion.orden]);
+
+  return (
+    <main className="visualization-view">
+      <div className="graph-stage">
+        <Graph3D
+          grafo={graph}
+          visibles={visibles}
+          seleccionado={null}
+          niveles={null}
+          ciclo={ciclo}
+          movimiento={movimiento}
+          onSelect={sinSeleccion}
+        />
+        <p className="graph-hint">
+          {ciclo
+            ? "En rojo: los pasos que se esperan entre sí."
+            : "Las flechas van del primer paso al producto terminado."}
+        </p>
+        <button className="graph-movimiento" type="button" onClick={alternarMovimiento}>
+          {movimiento ? "Pausar movimiento" : "Activar movimiento"}
+        </button>
+      </div>
+      <aside className="graph-panel">
+        <CiclosView graph={graph} {...ordenProduccion} onGuardado={onGuardado} onOpenRegistro={onOpenRegistro} />
+        <div className="legend legend-corta">
+          {LEGEND_ORDEN.filter((item) => item.layer !== "ciclo" || ciclo).map((item) => (
+            <div className="legend-item" key={item.layer}>
+              <span style={{ background: item.color }} />
+              <strong>{item.label}</strong>
+            </div>
+          ))}
+        </div>
+        <div className="orden-reinicio">
+          <ReiniciarDemo onGuardado={onGuardado} />
+        </div>
+      </aside>
     </main>
   );
 }
@@ -247,7 +343,7 @@ function ImpactTicket({ node, graph, impacto, error, cargando }: ImpactTicketPro
     consecuencia = "Consultando el impacto…";
   } else if (error) {
     consecuencia = `No se pudo consultar el impacto (${error}).`;
-  } else if (impacto?.caso === "inexistente") {
+  } else if (impacto?.caso === "inexistente" || impacto?.caso === "id_invalido") {
     consecuencia = impacto.mensaje;
   } else {
     consecuencia = textoConsecuencia(node.capa, afectados.length);
@@ -290,6 +386,101 @@ function ImpactTicket({ node, graph, impacto, error, cargando }: ImpactTicketPro
           ))}
         </ul>
       ) : null}
+    </article>
+  );
+}
+
+/**
+ * Consulta escribiendo el id, además de tocar el mapa. Así se pueden mostrar en
+ * la demo los cuatro casos de GET /impacto, incluidos los que no están en el
+ * mapa: un elemento inexistente (404) y un dato inválido (422).
+ */
+function ConsultaPorId({ onConsultar }: { onConsultar: (id: string) => void }) {
+  const [id, setId] = useState("");
+
+  const enviar = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    onConsultar(id);
+  };
+
+  return (
+    <form className="consulta-id" onSubmit={enviar}>
+      <label htmlFor="consulta-id">Simular falla por id</label>
+      <div className="consulta-id-fila">
+        <input
+          id="consulta-id"
+          value={id}
+          placeholder="PRV-QUIM"
+          autoComplete="off"
+          spellCheck={false}
+          onChange={(event) => setId(event.target.value)}
+        />
+        <button type="submit">Consultar</button>
+      </div>
+      <p className="consulta-id-ejemplos">
+        <span>Probar:</span>
+        {EJEMPLOS_IMPACTO.map((ejemplo) => (
+          <button
+            key={ejemplo.id}
+            type="button"
+            title={ejemplo.etiqueta}
+            onClick={() => {
+              setId(ejemplo.id);
+              onConsultar(ejemplo.id);
+            }}
+          >
+            <code>{ejemplo.id}</code>
+          </button>
+        ))}
+      </p>
+    </form>
+  );
+}
+
+const TITULO_SIN_NODO: Partial<Record<ImpactoResponse["caso"], string>> = {
+  id_invalido: "Dato inválido",
+  inexistente: "No está en el catálogo",
+};
+
+const EXPLICACION_SIN_NODO: Partial<Record<ImpactoResponse["caso"], string>> = {
+  id_invalido: "El id está mal escrito, así que no se buscó en el catálogo. Revisa el formato antes de volver a consultar.",
+  inexistente: "El id está bien escrito, pero ningún elemento del catálogo lo usa. No hay nada que se detenga.",
+};
+
+/**
+ * Respuesta para un id que no está en el mapa: el back dice si es un dato
+ * inválido (422) o un elemento inexistente (404), y se muestran distinto.
+ */
+function ConsultaSinNodo({
+  id,
+  impacto,
+  error,
+  cargando,
+}: {
+  id: string;
+  impacto: ImpactoResponse | null;
+  error: string | null;
+  cargando: boolean;
+}) {
+  const caso = impacto?.caso;
+  const titulo = (caso && TITULO_SIN_NODO[caso]) ?? impacto?.origen?.nombre ?? "Consulta";
+  let texto: string;
+  if (cargando) texto = "Consultando el impacto…";
+  else if (error) texto = `No se pudo consultar el impacto (${error}).`;
+  else texto = impacto?.mensaje ?? "";
+
+  return (
+    <article className={`impact-card consulta-aviso ${caso ?? ""}`} aria-live="polite">
+      <header className="impact-head">
+        <h3 className="impact-name">{titulo}</h3>
+        <p className="impact-kind">
+          <code>{id === "" ? "(vacío)" : `"${id}"`}</code>
+        </p>
+      </header>
+      <p className="impact-consequence">{texto}</p>
+      {!cargando && !error && caso && EXPLICACION_SIN_NODO[caso] && (
+        <p className="consulta-aviso-ayuda">{EXPLICACION_SIN_NODO[caso]}</p>
+      )}
     </article>
   );
 }

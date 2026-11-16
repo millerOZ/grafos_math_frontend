@@ -1,5 +1,5 @@
 import { useMemo, useState, type FormEvent } from 'react';
-import type { Arista, Capa, Grafo } from '../features/graph/types';
+import type { Capa, Grafo } from '../features/graph/types';
 import { ETIQUETAS_CAPA, esDependenciaPermitida } from '../features/graph/domain/dependencyRules';
 import { crearDependencia } from '../features/graph/hooks/getProducts';
 
@@ -13,14 +13,20 @@ const ORDEN_CAPAS: Capa[] = ['producto', 'proceso', 'insumo', 'proveedor'];
  */
 export default function DependencyConnect({
   grafo,
-  onAddEdge,
+  onGuardado,
 }: {
   grafo: Grafo;
-  onAddEdge: (arista: Arista) => void;
+  /** Vuelve a pedir GET /grafo después de guardar la dependencia. */
+  onGuardado: () => Promise<void>;
 }) {
   const [origenId, setOrigenId] = useState('');
   const [destinoId, setDestinoId] = useState('');
-  const [message, setMessage] = useState('');
+  const [message, setMessageText] = useState('');
+  const [messageType, setMessageType] = useState<'ok' | 'error' | 'aviso'>('error');
+  const setMessage = (texto: string, tipo: 'ok' | 'error' | 'aviso' = 'error') => {
+    setMessageText(texto);
+    setMessageType(tipo);
+  };
   const [sending, setSending] = useState(false);
 
   const origen = grafo.nodos.find((nodo) => nodo.id === origenId);
@@ -52,10 +58,15 @@ export default function DependencyConnect({
     setMessage('');
     try {
       const arista = await crearDependencia({ origen: origenId, destino: destinoId });
-      onAddEdge(arista);
       const nombre = (id: string) => grafo.nodos.find((nodo) => nodo.id === id)?.nombre ?? id;
-      setMessage(`Guardado: para producir ${nombre(arista.origen)} se necesita ${nombre(arista.destino)}.`);
+      const frase = `para producir ${nombre(arista.origen)} se necesita ${nombre(arista.destino)}`;
       setDestinoId('');
+      try {
+        await onGuardado();
+        setMessage(`Guardado: ${frase}.`, 'ok');
+      } catch {
+        setMessage(`Guardado: ${frase}, pero no se pudo actualizar la red. Recarga la página.`, 'aviso');
+      }
     } catch (err) {
       setMessage(err instanceof Error ? err.message : 'No se pudo registrar la dependencia.');
     } finally {
@@ -101,7 +112,7 @@ export default function DependencyConnect({
           ))}
         </select>
 
-        {yaExiste && <p className="form-message">Esta relación ya está guardada.</p>}
+        {yaExiste && <p className="form-message aviso">Esta relación ya está guardada.</p>}
 
         <button
           className="primary-button register-submit"
@@ -110,7 +121,11 @@ export default function DependencyConnect({
         >
           {sending ? "Guardando…" : "Guardar relación"}
         </button>
-        {message && <p className="form-message" role="status">{message}</p>}
+        {message && (
+          <p className={`form-message ${messageType}`} role={messageType === 'error' ? 'alert' : 'status'}>
+            {message}
+          </p>
+        )}
       </form>
     </section>
   );
