@@ -10,6 +10,12 @@ const FloatingElements3D = lazy(() =>
   import('../graph/components/FloatingElements3D').then((m) => ({ default: m.FloatingElements3D })),
 );
 
+// El vapor del pan también usa three; se baja aparte para no frenar la primera pintura.
+const HumoPan = lazy(() => import('./HumoPan').then((m) => ({ default: m.HumoPan })));
+
+const prefiereMenosMovimiento = () =>
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 export type DestinoSitio = 'nosotros' | 'visitanos' | 'panel';
 
 interface HomePageProps {
@@ -26,6 +32,7 @@ export function HomePage({ onNavigate, resumen }: HomePageProps) {
   const heroRef = useParallax<HTMLElement>(0.35);
   const bandaRef = useParallax<HTMLElement>(0.25);
   const historiaRef = useParallax<HTMLDivElement>(0.12);
+  const [conVapor] = useState(() => !prefiereMenosMovimiento());
 
   const irAVitrina = () =>
     document.getElementById('vitrina')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -34,7 +41,13 @@ export function HomePage({ onNavigate, resumen }: HomePageProps) {
     <main className="site home">
       <IntroCarga />
       <section className="home-hero" ref={heroRef}>
-        <div className="home-hero-foto" aria-hidden="true" />
+        <div className="home-hero-foto" aria-hidden="true">
+          {conVapor && (
+            <Suspense fallback={null}>
+              <HumoPan />
+            </Suspense>
+          )}
+        </div>
         <div className="home-hero-contenido">
           <p className="home-hero-saludo">Panadería y café de barrio en Medellín</p>
           <h1 className="home-hero-titulo">

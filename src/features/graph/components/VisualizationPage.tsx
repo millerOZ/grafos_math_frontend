@@ -7,6 +7,7 @@ import { AFECTADO, CAPA_HOJA, CAPA_NODO, CICLO } from "../paleta";
 import type { Capa, Grafo, ImpactoResponse, Nodo, OrdenProduccionResponse } from "../types";
 import Graph3D from "../../../components/Graph3D";
 import { CiclosView } from "./CiclosView";
+import { ExplicacionImpacto, ExplicacionOrden } from "./ComoSeCalcula";
 import { ReiniciarDemo } from "./ReiniciarDemo";
 
 /**
@@ -180,6 +181,7 @@ export function VisualizationPage({
             </p>
           </div>
         )}
+        {esImpacto && <ExplicacionImpacto />}
         {!esImpacto && onOpenRegistro && (
           <button className="ciclos-accion" type="button" onClick={onOpenRegistro}>
             Registrar elemento o dependencia
@@ -228,8 +230,12 @@ function VistaOrden({
   onGuardado: () => Promise<void>;
   onOpenRegistro?: () => void;
 }) {
-  const visibles = useMemo(() => nodosDeOrden(graph), [graph]);
+  const cadena = useMemo(() => nodosDeOrden(graph), [graph]);
   const ciclo = useMemo(() => resaltarCiclos(ordenProduccion.orden), [ordenProduccion.orden]);
+  // Con un ciclo, por defecto el mapa muestra solo los procesos que lo forman.
+  const [soloCiclo, setSoloCiclo] = useState(true);
+  const verSoloCiclo = Boolean(ciclo) && soloCiclo;
+  const visibles = verSoloCiclo && ciclo ? ciclo.nodos : cadena;
 
   return (
     <main className="visualization-view">
@@ -243,10 +249,31 @@ function VistaOrden({
           movimiento={movimiento}
           onSelect={sinSeleccion}
         />
+        {ciclo && (
+          <div className="vista-ciclo" role="radiogroup" aria-label="Qué parte del mapa ver">
+            {[
+              { valor: true, texto: "Solo el ciclo" },
+              { valor: false, texto: "Toda la cadena" },
+            ].map((opcion) => (
+              <button
+                key={opcion.texto}
+                type="button"
+                role="radio"
+                aria-checked={soloCiclo === opcion.valor}
+                className={soloCiclo === opcion.valor ? "activa" : undefined}
+                onClick={() => setSoloCiclo(opcion.valor)}
+              >
+                {opcion.texto}
+              </button>
+            ))}
+          </div>
+        )}
         <p className="graph-hint">
-          {ciclo
-            ? "En rojo: los pasos que se esperan entre sí."
-            : "Las flechas van del primer paso al producto terminado."}
+          {verSoloCiclo
+            ? "Solo los pasos que se esperan entre sí. Quita una de sus dependencias para romper el ciclo."
+            : ciclo
+              ? "En rojo: los pasos que se esperan entre sí."
+              : "Las flechas van del primer paso al producto terminado."}
         </p>
         <button className="graph-movimiento" type="button" onClick={alternarMovimiento}>
           {movimiento ? "Pausar movimiento" : "Activar movimiento"}
@@ -254,6 +281,7 @@ function VistaOrden({
       </div>
       <aside className="graph-panel">
         <CiclosView graph={graph} {...ordenProduccion} onGuardado={onGuardado} onOpenRegistro={onOpenRegistro} />
+        <ExplicacionOrden />
         <div className="legend legend-corta">
           {LEGEND_ORDEN.filter((item) => item.layer !== "ciclo" || ciclo).map((item) => (
             <div className="legend-item" key={item.layer}>

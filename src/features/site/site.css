@@ -38,6 +38,8 @@
   transform: translate3d(0, var(--parallax, 0px), 0) scale(1.06);
   will-change: transform;
 }
+/* Vapor del pan (HumoPan): mismo cuadro que la foto, sin capturar clics. */
+.home-hero-humo { position: absolute; inset: 0; pointer-events: none; animation: aparecer 2.4s 1s ease both; }
 .home-hero::after {
   content: ''; position: absolute; inset: 0; z-index: -1;
   background:

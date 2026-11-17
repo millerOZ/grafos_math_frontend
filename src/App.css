@@ -745,3 +745,17 @@ h1 em { color: var(--tinta-suave); font-style: normal; }
 .legend-corta { padding-top: 14px; }
 .legend-corta .legend-item { grid-template-columns: 10px 1fr; margin: 6px 0; }
 .orden-reinicio { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--linea); }
+
+/* Vista de orden: ver solo el ciclo o toda la cadena. */
+.vista-ciclo { position: absolute; top: 16px; left: 24px; display: inline-flex; padding: 3px; border: 1px solid var(--linea); border-radius: 999px; background: var(--papel); }
+.vista-ciclo button { padding: 6px 12px; border: 0; border-radius: 999px; background: none; color: var(--tinta-suave); font: inherit; font-size: 12px; cursor: pointer; }
+.vista-ciclo button.activa { background: var(--alerta); color: #fff; }
+.vista-ciclo button:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
+
+/* "¿Cómo se calcula?": explicación plegable del algoritmo de cada consulta. */
+.como-se-calcula { padding: 12px 14px; border: 1px solid var(--linea); background: var(--niebla); color: var(--tinta); font-size: 13px; line-height: 1.55; }
+.como-se-calcula summary { color: var(--tinta); font-weight: 600; cursor: pointer; }
+.como-se-calcula p, .como-se-calcula ol { margin: 10px 0 0; }
+.como-se-calcula ol { padding-left: 18px; }
+.como-se-calcula li { margin: 3px 0; }
+.como-se-calcula-porque { padding-left: 10px; border-left: 2px solid var(--acento); color: var(--tinta-media); }

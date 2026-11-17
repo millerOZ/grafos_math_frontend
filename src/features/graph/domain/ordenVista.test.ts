@@ -34,6 +34,23 @@ describe('resaltarCiclos', () => {
     ]));
   });
 
+  it('usa en_ciclo del back para marcar todos los procesos que están en un ciclo', () => {
+    const r = resaltarCiclos({
+      ...ORDEN_BASE,
+      caso: 'ciclo',
+      etapas: null,
+      // Tarjan encontró 3 procesos en el grupo; el ciclo reportado (el más corto) usa 2.
+      en_ciclo: ['PRC-AMASAR', 'PRC-HORNEAR', 'PRC-FERMENTAR'],
+      ciclos: [{ ids: ['PRC-AMASAR', 'PRC-HORNEAR'], descripcion: '' }],
+    });
+
+    expect(r?.nodos).toEqual(new Set(['PRC-AMASAR', 'PRC-HORNEAR', 'PRC-FERMENTAR']));
+    expect(r?.aristas).toEqual(new Set([
+      claveDependencia('PRC-AMASAR', 'PRC-HORNEAR'),
+      claveDependencia('PRC-HORNEAR', 'PRC-AMASAR'),
+    ]));
+  });
+
   it('un proceso que se requiere a sí mismo resalta su propia dependencia', () => {
     const r = resaltarCiclos({ ...ORDEN_BASE, caso: 'ciclo', ciclos: [{ ids: ['PRC-TAJAR'], descripcion: '' }] });
 

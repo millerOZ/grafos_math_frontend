@@ -10,12 +10,15 @@ export interface ResaltadoCiclo {
 export const claveDependencia = (origen: string, destino: string) => `${origen}>${destino}`;
 
 /**
- * Cada ciclo viene como `ids` donde cada proceso requiere al siguiente y el
- * último al primero; de ahí salen las aristas a resaltar. Sin ciclos, null.
+ * Nodos: `en_ciclo` del back (todos los procesos que forman algún ciclo, según
+ * Tarjan) más los ids de cada ciclo reportado.
+ * Aristas: cada ciclo viene como `ids` donde cada proceso requiere al siguiente
+ * y el último al primero; de ahí salen las dependencias a resaltar.
+ * Sin ciclos, null.
  */
 export function resaltarCiclos(orden: OrdenProduccionResponse | null): ResaltadoCiclo | null {
-  if (!orden || orden.ciclos.length === 0) return null;
-  const nodos = new Set<string>();
+  if (!orden || (orden.ciclos.length === 0 && orden.en_ciclo.length === 0)) return null;
+  const nodos = new Set<string>(orden.en_ciclo);
   const aristas = new Set<string>();
   for (const { ids } of orden.ciclos) {
     ids.forEach((id, i) => {
