@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "8beb2c50-fd46-4c26-9539-d7499984fae2",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "/Users/millerossasamboni/Programacion/ITM/2026-II/matematicas_para_info/grafos_math_frontend/.archify/architecture-react-frontend-20261116-110555/candidate.json",
+  "output": "/Users/millerossasamboni/Programacion/ITM/2026-II/matematicas_para_info/grafos_math_frontend/.archify/architecture-react-frontend-20261116-110555/arquitectura-frontend.html",
+  "specification": {
+    "sha256": "1b60309ab58140a39cc21a44bc285d1ab7d7dda7f2826dc639480f78a676cef5",
+    "bytes": 8910
+  },
+  "artifact": {
+    "sha256": "af365a00fd99a591a65cb0b0d1bbaad23a6be76e278491ecc2e63011a9050ee6",
+    "bytes": 873418
+  }
+}

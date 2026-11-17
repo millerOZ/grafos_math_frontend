@@ -1,0 +1,403 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "Flujo de datos del grafo: entrada → algoritmo → render 3D",
+    "output": "docs/diagramas/dataflow-grafo-20261116-112549/flujo-datos-grafo.html",
+    "locale": "es",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "git@github.com:millerOZ/grafos_math_frontend.git",
+      "provider": "github",
+      "link_mode": "local-only",
+      "revision": "0111e6f427a139f08a0c3901e205f7844e385062"
+    }
+  },
+  "stages": [
+    {
+      "label": "Entrada del usuario"
+    },
+    {
+      "label": "Back: datos y algoritmos"
+    },
+    {
+      "label": "Estado en React"
+    },
+    {
+      "label": "Preparación en el front"
+    },
+    {
+      "label": "Render 3D"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "registro",
+      "type": "frontend",
+      "label": "Registro",
+      "sublabel": "elementos y dependencias",
+      "stage": 0,
+      "row": 0,
+      "tag": "Compras",
+      "sources": [
+        {
+          "path": "src/features/graph/hooks/useElementRegistration.ts",
+          "line": 77,
+          "end_line": 109
+        },
+        {
+          "path": "src/components/DependencyConnect.tsx",
+          "line": 51,
+          "end_line": 60
+        }
+      ]
+    },
+    {
+      "id": "quitar",
+      "type": "frontend",
+      "label": "Quitar arista",
+      "sublabel": "CiclosView",
+      "stage": 0,
+      "row": 1,
+      "tag": "romper ciclo",
+      "sources": [
+        {
+          "path": "src/features/graph/components/CiclosView.tsx",
+          "line": 32,
+          "end_line": 41
+        }
+      ]
+    },
+    {
+      "id": "consulta",
+      "type": "frontend",
+      "label": "Elegir nodo",
+      "sublabel": "clic o id escrito",
+      "stage": 0,
+      "row": 2,
+      "tag": "Impacto",
+      "sources": [
+        {
+          "path": "src/features/graph/components/VisualizationPage.tsx",
+          "line": 95,
+          "end_line": 108
+        },
+        {
+          "path": "src/features/graph/domain/consultaImpacto.ts",
+          "line": 17,
+          "end_line": 21
+        }
+      ]
+    },
+    {
+      "id": "grafo-back",
+      "type": "database",
+      "label": "Grafo en el back",
+      "sublabel": "FastAPI · única fuente",
+      "stage": 1,
+      "row": 1,
+      "sources": [
+        {
+          "path": "README.md",
+          "line": 145,
+          "end_line": 151
+        },
+        {
+          "path": "src/features/graph/hooks/getProducts.ts",
+          "line": 92,
+          "end_line": 112
+        }
+      ]
+    },
+    {
+      "id": "orden",
+      "type": "backend",
+      "label": "Orden y ciclos",
+      "sublabel": "etapas o ciclos detectados",
+      "stage": 1,
+      "row": 3,
+      "tag": "en el back",
+      "sources": [
+        {
+          "path": "src/features/graph/hooks/getProducts.ts",
+          "line": 82,
+          "end_line": 90
+        },
+        {
+          "path": "src/features/graph/types.ts",
+          "line": 63,
+          "end_line": 75
+        }
+      ]
+    },
+    {
+      "id": "bfs",
+      "type": "backend",
+      "label": "BFS de impacto",
+      "sublabel": "quién depende del origen",
+      "stage": 1,
+      "row": 2,
+      "tag": "en el back",
+      "sources": [
+        {
+          "path": "README.md",
+          "line": 150,
+          "end_line": 151
+        },
+        {
+          "path": "src/features/graph/hooks/getProducts.ts",
+          "line": 60,
+          "end_line": 80
+        },
+        {
+          "path": "src/features/graph/types.ts",
+          "line": 32,
+          "end_line": 43
+        }
+      ]
+    },
+    {
+      "id": "app-graph",
+      "type": "frontend",
+      "label": "App: graph",
+      "sublabel": "useState + recargarGrafo",
+      "stage": 2,
+      "row": 1,
+      "sources": [
+        {
+          "path": "src/App.tsx",
+          "line": 71
+        },
+        {
+          "path": "src/App.tsx",
+          "line": 114,
+          "end_line": 122
+        }
+      ]
+    },
+    {
+      "id": "use-orden",
+      "type": "frontend",
+      "label": "useOrdenProduccion",
+      "sublabel": "se repite si cambia graph",
+      "stage": 2,
+      "row": 3,
+      "sources": [
+        {
+          "path": "src/features/graph/hooks/useOrdenProduccion.ts",
+          "line": 22,
+          "end_line": 49
+        }
+      ]
+    },
+    {
+      "id": "use-impacto",
+      "type": "frontend",
+      "label": "useImpacto",
+      "sublabel": "por nodo y por graph",
+      "stage": 2,
+      "row": 2,
+      "sources": [
+        {
+          "path": "src/features/graph/hooks/useImpacto.ts",
+          "line": 24,
+          "end_line": 54
+        }
+      ]
+    },
+    {
+      "id": "layout",
+      "type": "backend",
+      "label": "calcularLayout",
+      "sublabel": "pasosDeProcesos (DFS)",
+      "stage": 3,
+      "row": 1,
+      "tag": "algoritmo en el front",
+      "sources": [
+        {
+          "path": "src/components/Graph3D.tsx",
+          "line": 69,
+          "end_line": 95
+        },
+        {
+          "path": "src/components/Graph3D.tsx",
+          "line": 97,
+          "end_line": 132
+        },
+        {
+          "path": "src/components/Graph3D.tsx",
+          "line": 569,
+          "end_line": 577
+        }
+      ]
+    },
+    {
+      "id": "ciclos-vista",
+      "type": "backend",
+      "label": "resaltarCiclos",
+      "sublabel": "ordenVista.ts",
+      "stage": 3,
+      "row": 3,
+      "sources": [
+        {
+          "path": "src/features/graph/domain/ordenVista.ts",
+          "line": 16,
+          "end_line": 27
+        },
+        {
+          "path": "src/features/graph/components/VisualizationPage.tsx",
+          "line": 231,
+          "end_line": 232
+        }
+      ]
+    },
+    {
+      "id": "niveles",
+      "type": "backend",
+      "label": "niveles + visibles",
+      "sublabel": "VisualizationPage",
+      "stage": 3,
+      "row": 2,
+      "sources": [
+        {
+          "path": "src/features/graph/components/VisualizationPage.tsx",
+          "line": 109,
+          "end_line": 124
+        }
+      ]
+    },
+    {
+      "id": "escena",
+      "type": "frontend",
+      "label": "Escena R3F",
+      "sublabel": "Nodo3D · Hilo · Onda",
+      "stage": 4,
+      "row": 2,
+      "tag": "Graph3D",
+      "sources": [
+        {
+          "path": "src/components/Graph3D.tsx",
+          "line": 627,
+          "end_line": 659
+        },
+        {
+          "path": "src/components/Graph3D.tsx",
+          "line": 665,
+          "end_line": 676
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "id": "f-registro",
+      "from": "registro",
+      "to": "grafo-back",
+      "label": "POST nodo/arista",
+      "variant": "emphasis"
+    },
+    {
+      "id": "f-quitar",
+      "from": "quitar",
+      "to": "grafo-back",
+      "label": "DELETE arista"
+    },
+    {
+      "id": "f-consulta",
+      "from": "consulta",
+      "to": "bfs",
+      "label": "GET /impacto/{id}"
+    },
+    {
+      "id": "f-grafo",
+      "from": "grafo-back",
+      "to": "app-graph",
+      "label": "GET /grafo",
+      "variant": "emphasis"
+    },
+    {
+      "id": "f-orden",
+      "from": "orden",
+      "to": "use-orden",
+      "label": "etapas + ciclos"
+    },
+    {
+      "id": "f-bfs",
+      "from": "bfs",
+      "to": "use-impacto",
+      "label": "afectados + nivel"
+    },
+    {
+      "id": "f-layout",
+      "from": "app-graph",
+      "to": "layout",
+      "label": "nodos + aristas",
+      "variant": "emphasis"
+    },
+    {
+      "id": "f-ciclos",
+      "from": "use-orden",
+      "to": "ciclos-vista",
+      "label": "ciclos[].ids"
+    },
+    {
+      "id": "f-niveles",
+      "from": "use-impacto",
+      "to": "niveles",
+      "label": "ImpactoResponse"
+    },
+    {
+      "id": "f-visibles",
+      "from": "niveles",
+      "to": "layout",
+      "label": "subgrafo visible"
+    },
+    {
+      "id": "f-pos",
+      "from": "layout",
+      "to": "escena",
+      "label": "posiciones 3D",
+      "variant": "emphasis"
+    },
+    {
+      "id": "f-rojo",
+      "from": "ciclos-vista",
+      "to": "escena",
+      "label": "resaltado rojo"
+    },
+    {
+      "id": "f-onda",
+      "from": "niveles",
+      "to": "escena",
+      "label": "nivel → onda"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "amber",
+      "title": "Dónde corre cada algoritmo",
+      "items": [
+        "BFS de impacto y orden de producción con detección de ciclos: en el back; el front solo recibe el resultado (el README dice que se quitó un BFS duplicado del front)",
+        "No hay Dijkstra ni pesos en las aristas: todas son «REQUIERE», sin costo",
+        "Único algoritmo en el front: pasosDeProcesos, un DFS con memoización que da la columna de cada proceso (1 + el paso más alto de los que requiere; corta los ciclos)"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Cómo se mueve el grafo",
+      "items": [
+        "Cada POST o DELETE termina en onGuardado → recargarGrafo → GET /grafo; el front no arma aristas propias",
+        "Cuando cambia graph, useOrdenProduccion y useImpacto vuelven a consultar el back",
+        "Graph3D recalcula el layout con el grafo completo o solo con el subgrafo visible del impacto"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "Límite de la evidencia",
+      "items": [
+        "El código del back no está en este repo: sus nodos se basan en los endpoints, los tipos de respuesta y el README",
+        "No se sabe qué algoritmo concreto calcula las etapas del orden de producción"
+      ]
+    }
+  ]
+}

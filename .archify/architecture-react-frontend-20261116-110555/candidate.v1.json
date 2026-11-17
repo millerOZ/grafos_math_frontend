@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Arquitectura del frontend React — Bake & Brew / grafo de dependencias",
+    "output": ".archify/architecture-react-frontend-20261116-110555/arquitectura-frontend.html",
+    "locale": "es",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "git@github.com:millerOZ/grafos_math_frontend.git",
+      "provider": "github",
+      "link_mode": "local-only",
+      "revision": "0111e6f427a139f08a0c3901e205f7844e385062"
+    },
+    "legend": {
+      "entries": {
+        "frontend": { "label": "Página o componente React" },
+        "backend": { "label": "Hook de React (estado y efectos)" },
+        "cloud": { "label": "Capa de servicios / cliente HTTP" },
+        "external": { "label": "Externo: usuario, API back o librería" }
+      }
+    }
+  },
+  "components": [
+    { "id": "usuario", "type": "external", "label": "Usuario", "sublabel": "rol Compras / Producción", "pos": [40, 321], "size": [150, 64], "icon": "person" },
+    { "id": "use-alerta", "type": "backend", "label": "useAlertaCiclo", "sublabel": "suena si suben ciclos", "pos": [40, 540], "size": [150, 76], "tag": "lib/alertaCiclo",
+      "sources": [ { "path": "src/features/graph/hooks/useAlertaCiclo.ts", "line": 11, "end_line": 21 }, { "path": "src/lib/alertaCiclo.ts", "line": 11, "end_line": 22 } ] },
+    { "id": "use-orden", "type": "backend", "label": "useOrdenProduccion", "sublabel": "orden y ciclos por grafo", "pos": [290, 60], "size": [180, 64],
+      "sources": [ { "path": "src/features/graph/hooks/useOrdenProduccion.ts", "line": 22, "end_line": 49 } ] },
+    { "id": "app", "type": "frontend", "label": "App.tsx", "sublabel": "useState: rol · view · graph · selectedId", "pos": [290, 290], "size": [180, 126], "tag": "estado central",
+      "sources": [ { "path": "src/App.tsx", "line": 67, "end_line": 77 }, { "path": "src/App.tsx", "line": 114, "end_line": 122 }, { "path": "src/main.tsx", "line": 6, "end_line": 10 } ] },
+    { "id": "sitio", "type": "frontend", "label": "Sitio público", "sublabel": "HomePage · Nosotros · Visítanos", "pos": [290, 540], "size": [180, 76],
+      "sources": [ { "path": "src/App.tsx", "line": 189, "end_line": 191 }, { "path": "src/features/site/HomePage.tsx", "line": 25, "end_line": 35 } ] },
+    { "id": "floating", "type": "frontend", "label": "FloatingElements3D", "sublabel": "nodos 3D decorativos", "pos": [290, 700], "size": [180, 64],
+      "sources": [ { "path": "src/features/graph/components/FloatingElements3D.tsx", "line": 58, "end_line": 78 }, { "path": "src/features/site/HomePage.tsx", "line": 8, "end_line": 11 } ] },
+    { "id": "registro", "type": "frontend", "label": "DependencyRegister", "sublabel": "ElementRegister · DependencyConnect · Table", "pos": [570, 170], "size": [230, 84], "tag": "rol Compras",
+      "sources": [ { "path": "src/components/DependencyRegister.tsx", "line": 16, "end_line": 26 }, { "path": "src/components/DependencyConnect.tsx", "line": 51, "end_line": 75 } ] },
+    { "id": "visual", "type": "frontend", "label": "VisualizationPage", "sublabel": "modos red · impacto · orden", "pos": [570, 310], "size": [230, 160],
+      "sources": [ { "path": "src/features/graph/components/VisualizationPage.tsx", "line": 75, "end_line": 108 }, { "path": "src/App.tsx", "line": 195, "end_line": 206 } ] },
+    { "id": "graph3d", "type": "frontend", "label": "Graph3D", "sublabel": "Canvas R3F: capas, nodos, hilos", "pos": [570, 540], "size": [230, 76],
+      "sources": [ { "path": "src/components/Graph3D.tsx", "line": 569, "end_line": 572 }, { "path": "src/components/Graph3D.tsx", "line": 665, "end_line": 676 } ] },
+    { "id": "r3f", "type": "external", "label": "React Three Fiber", "sublabel": "@react-three/fiber · drei · three", "pos": [570, 700], "size": [230, 64],
+      "sources": [ { "path": "package.json", "line": 13, "end_line": 19 } ] },
+    { "id": "use-element", "type": "backend", "label": "useElementRegistration", "sublabel": "valida y crea elementos", "pos": [900, 180], "size": [190, 64],
+      "sources": [ { "path": "src/features/graph/hooks/useElementRegistration.ts", "line": 77, "end_line": 127 } ] },
+    { "id": "use-impacto", "type": "backend", "label": "useImpacto", "sublabel": "impacto del nodo elegido", "pos": [900, 326], "size": [190, 64],
+      "sources": [ { "path": "src/features/graph/hooks/useImpacto.ts", "line": 24, "end_line": 54 } ] },
+    { "id": "use-mov", "type": "backend", "label": "useMovimiento", "sublabel": "animación on/off", "pos": [900, 420], "size": [190, 64],
+      "sources": [ { "path": "src/features/graph/hooks/useMovimiento.ts", "line": 16, "end_line": 30 } ] },
+    { "id": "ciclos", "type": "frontend", "label": "CiclosView · ReiniciarDemo", "sublabel": "romper ciclo · reset demo", "pos": [900, 540], "size": [190, 76],
+      "sources": [ { "path": "src/features/graph/components/CiclosView.tsx", "line": 32, "end_line": 55 }, { "path": "src/features/graph/components/ReiniciarDemo.tsx", "line": 25, "end_line": 45 } ] },
+    { "id": "api", "type": "cloud", "label": "getProducts.ts", "sublabel": "graphService · fetch", "pos": [1190, 60], "size": [180, 600], "tag": "API_URL :8000",
+      "sources": [ { "path": "src/features/graph/hooks/getProducts.ts", "line": 15, "end_line": 28 }, { "path": "src/features/graph/hooks/getProducts.ts", "line": 42, "end_line": 139 }, { "path": "src/features/graph/services/graphService.ts", "line": 17, "end_line": 31 } ] },
+    { "id": "back", "type": "external", "label": "Back FastAPI", "sublabel": "127.0.0.1:8000", "pos": [1190, 760], "size": [180, 70],
+      "sources": [ { "path": "src/features/graph/hooks/getProducts.ts", "line": 15, "end_line": 17 } ] }
+  ],
+  "connections": [
+    { "id": "usuario-app", "from": "usuario", "to": "app", "label": "rol y vista", "variant": "emphasis" },
+    { "id": "app-orden", "from": "app", "to": "use-orden", "label": "graph" },
+    { "id": "app-alerta", "from": "app", "to": "use-alerta", "label": "total ciclos" },
+    { "id": "app-sitio", "from": "app", "to": "sitio", "label": "inicio" },
+    { "id": "app-registro", "from": "app", "to": "registro", "label": "registro" },
+    { "id": "app-visual", "from": "app", "to": "visual", "label": "red · impacto · orden" },
+    { "id": "app-api", "from": "app", "to": "api", "label": "getGrafo()", "variant": "emphasis" },
+    { "id": "sitio-floating", "from": "sitio", "to": "floating", "label": "lazy", "variant": "dashed" },
+    { "id": "floating-r3f", "from": "floating", "to": "r3f" },
+    { "id": "registro-element", "from": "registro", "to": "use-element", "label": "formulario" },
+    { "id": "registro-api", "from": "registro", "to": "api", "label": "crearDependencia" },
+    { "id": "visual-impacto", "from": "visual", "to": "use-impacto", "label": "nodo" },
+    { "id": "visual-mov", "from": "visual", "to": "use-mov" },
+    { "id": "visual-graph3d", "from": "visual", "to": "graph3d", "label": "grafo + resaltado" },
+    { "id": "visual-ciclos", "from": "visual", "to": "ciclos", "label": "modo orden" },
+    { "id": "graph3d-r3f", "from": "graph3d", "to": "r3f" },
+    { "id": "element-api", "from": "use-element", "to": "api", "label": "POST elemento" },
+    { "id": "impacto-api", "from": "use-impacto", "to": "api", "label": "GET /impacto" },
+    { "id": "ciclos-api", "from": "ciclos", "to": "api", "label": "DELETE · reset" },
+    { "id": "orden-api", "from": "use-orden", "to": "api", "label": "GET /orden-produccion" },
+    { "id": "api-back", "from": "api", "to": "back", "label": "HTTP JSON", "variant": "emphasis" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "Manejo de estado", "items": [
+      "Sin Redux ni Context: App.tsx guarda rol, vista, grafo y nodo seleccionado con useState y los pasa por props",
+      "El grafo solo viene del back: tras cada POST o DELETE, onGuardado llama a recargarGrafo (GET /grafo) y se aplica solo la respuesta más reciente",
+      "Navegador: localStorage guarda rol y movimiento; sessionStorage, la clave de reinicio de la demo"
+    ] },
+    { "dot": "cyan", "title": "Servicios / API", "items": [
+      "getProducts.ts concentra los endpoints: /grafo, /impacto/{id}, /orden-produccion, POST de elementos y dependencias, DELETE de dependencias y /demo/reset",
+      "graphService inyecta fetch para probar GET /grafo sin red",
+      "API_URL está fija en http://127.0.0.1:8000 (la variable VITE_API_URL está comentada)"
+    ] },
+    { "dot": "violet", "title": "Visualización del grafo", "items": [
+      "Graph3D dibuja proveedores, insumos, procesos y productos en capas con @react-three/fiber, drei (Line, Text, OrbitControls) y three",
+      "La página de inicio carga FloatingElements3D con lazy y Suspense, solo al llegar a esa sección",
+      "Lógica pura en domain/: dependencyRules, consultaImpacto y ordenVista, con tests en Vitest"
+    ] }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "tree",
+  "quality": "showcase",
+  "specification": {
+    "path": "/Users/millerossasamboni/Programacion/ITM/2026-II/matematicas_para_info/grafos_math_frontend/.archify/tree-componentes-app-20261116-112335/candidate.json",
+    "sha256": "838272371d62f11d23ba018950f7c1af147a0e2096c85d567422167e1be3ba8d",
+    "bytes": 10671
+  },
+  "artifact": {
+    "path": "/Users/millerossasamboni/Programacion/ITM/2026-II/matematicas_para_info/grafos_math_frontend/.archify/tree-componentes-app-20261116-112335/arbol-componentes.html",
+    "sha256": "80dca6f5dd0b8661bbf64acaf00da2484b0df77822b0c4833495012bb9b22b7b",
+    "bytes": 905176
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "/Users/millerossasamboni/Programacion/ITM/2026-II/matematicas_para_info/grafos_math_frontend/.archify/tree-componentes-app-20261116-112335/arbol-componentes.finalize.json",
+    "summaryReceipt": "/Users/millerossasamboni/Programacion/ITM/2026-II/matematicas_para_info/grafos_math_frontend/.archify/tree-componentes-app-20261116-112335/arbol-componentes.finalize-summary.json",
+    "browserCheckReceipt": "/Users/millerossasamboni/Programacion/ITM/2026-II/matematicas_para_info/grafos_math_frontend/.archify/tree-componentes-app-20261116-112335/arbol-componentes.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-16T16:06:29.507Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 1766,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

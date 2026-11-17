@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "/Users/millerossasamboni/Programacion/ITM/2026-II/matematicas_para_info/grafos_math_frontend/.archify/architecture-react-frontend-20261116-110555/candidate.json",
+    "sha256": "1b60309ab58140a39cc21a44bc285d1ab7d7dda7f2826dc639480f78a676cef5",
+    "bytes": 8910
+  },
+  "artifact": {
+    "path": "/Users/millerossasamboni/Programacion/ITM/2026-II/matematicas_para_info/grafos_math_frontend/.archify/architecture-react-frontend-20261116-110555/arquitectura-frontend.html",
+    "sha256": "af365a00fd99a591a65cb0b0d1bbaad23a6be76e278491ecc2e63011a9050ee6",
+    "bytes": 873418
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "/Users/millerossasamboni/Programacion/ITM/2026-II/matematicas_para_info/grafos_math_frontend/.archify/architecture-react-frontend-20261116-110555/arquitectura-frontend.finalize.json",
+    "summaryReceipt": "/Users/millerossasamboni/Programacion/ITM/2026-II/matematicas_para_info/grafos_math_frontend/.archify/architecture-react-frontend-20261116-110555/arquitectura-frontend.finalize-summary.json",
+    "browserCheckReceipt": "/Users/millerossasamboni/Programacion/ITM/2026-II/matematicas_para_info/grafos_math_frontend/.archify/architecture-react-frontend-20261116-110555/arquitectura-frontend.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-16T16:06:29.507Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 2541,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  },
+  "visualReviewRecommendation": {
+    "action": "inspect-route-readability",
+    "signals": {
+      "resolvedCrossovers": 1,
+      "routesOverSuggestedBends": 1
+    },
+    "reason": "Automated gates passed, but crossings or detours still need perceptual review before claiming visual quality.",
+    "affectedRoutes": {
+      "crossings": [
+        {
+          "left": {
+            "id": "app-api",
+            "from": "app",
+            "to": "api",
+            "label": "getGrafo()",
+            "collectionIndex": 6,
+            "artifactIndex": 7
+          },
+          "right": {
+            "id": "registro-api",
+            "from": "registro",
+            "to": "api",
+            "label": "crearDependencia",
+            "collectionIndex": 10,
+            "artifactIndex": 11
+          },
+          "point": [
+            884,
+            287
+          ],
+          "sharedNode": "api"
+        }
+      ],
+      "detours": [
+        {
+          "relationship": {
+            "id": "app-api",
+            "from": "app",
+            "to": "api",
+            "label": "getGrafo()",
+            "collectionIndex": 6,
+            "artifactIndex": 7
+          },
+          "bends": 4,
+          "stretch": 1.18
+        }
+      ],
+      "truncated": false
+    },
+    "hints": [
+      "app → api and registro → api cross next to api: move node app or registro so the two reach api from different sides (for example one level with it, one directly above or below it).",
+      "app → api needs 4 bends: move node app or api so they share a row or column with matching centers, or sit diagonally with a clear corner."
+    ],
+    "repair": "Trace these relationships at the desktop viewport. For Architecture, use references/architecture-layout-repair.md: reflow a blocked main path or tangled connected scene, and repair an isolated defect locally only when the surrounding composition is accepted. Preserve all semantic content and user-fixed geometry. Rerun finalize once after the edit."
+  }
+}

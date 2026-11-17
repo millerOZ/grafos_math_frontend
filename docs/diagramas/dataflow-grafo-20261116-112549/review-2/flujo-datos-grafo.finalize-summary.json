@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "dataflow",
+  "quality": "showcase",
+  "specification": {
+    "path": "/Users/millerossasamboni/Programacion/ITM/2026-II/matematicas_para_info/grafos_math_frontend/docs/diagramas/dataflow-grafo-20261116-112549/candidate.json",
+    "sha256": "73e1eba6e65d1698825995745357c5c7e3d1e998f47cb9c739e607cdfdefdd17",
+    "bytes": 9459
+  },
+  "artifact": {
+    "path": "/Users/millerossasamboni/Programacion/ITM/2026-II/matematicas_para_info/grafos_math_frontend/docs/diagramas/dataflow-grafo-20261116-112549/flujo-datos-grafo.html",
+    "sha256": "f30caa76cf242cea57e4f82cbd9582e132442ffd95f0d20bcc840d1270fa92c3",
+    "bytes": 853762
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "/Users/millerossasamboni/Programacion/ITM/2026-II/matematicas_para_info/grafos_math_frontend/docs/diagramas/dataflow-grafo-20261116-112549/review-2/flujo-datos-grafo.finalize.json",
+    "summaryReceipt": "/Users/millerossasamboni/Programacion/ITM/2026-II/matematicas_para_info/grafos_math_frontend/docs/diagramas/dataflow-grafo-20261116-112549/review-2/flujo-datos-grafo.finalize-summary.json",
+    "browserCheckReceipt": "/Users/millerossasamboni/Programacion/ITM/2026-II/matematicas_para_info/grafos_math_frontend/docs/diagramas/dataflow-grafo-20261116-112549/review-2/flujo-datos-grafo.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-16T16:06:29.507Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 1904,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}
