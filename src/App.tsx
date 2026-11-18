@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "./App.css";
 import DependencyRegister from "./components/DependencyRegister";
+import musicaFondo from "./assets/New York Autumn Coffee Jazz ☕🍂 Relaxing Jazz Music for Cozy Days.mp3";
 import { VisualizationPage } from "./features/graph/components/VisualizationPage";
 import { HomePage, type DestinoSitio } from "./features/site/HomePage";
 import { NosotrosPage } from "./features/site/NosotrosPage";
@@ -70,6 +71,7 @@ function App() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [graph, setGraph] = useState<Grafo>(MOCK_GRAFO);
   const ultimaRecarga = useRef(0);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   // Se consulta aquí (y no en la vista) porque la navegación también avisa los ciclos.
   const ordenProduccion = useOrdenProduccion(graph);
@@ -125,8 +127,56 @@ function App() {
     (rol === "compras" && view === "red") ||
     (rol === "produccion" && (view === "impacto" || view === "orden"));
 
+  // Reproducir música: intenta siempre, y sigue intentando en cada interacción
+  useEffect(() => {
+    let reproduciendo = false;
+
+    const iniciarMusica = () => {
+      if (audioRef.current && !reproduciendo) {
+        audioRef.current.volume = 0.5;
+        audioRef.current.play()
+          .then(() => {
+            reproduciendo = true;
+            // Una vez reproduciendo, quitar listeners
+            document.removeEventListener("click", iniciarMusica);
+            document.removeEventListener("scroll", iniciarMusica);
+            document.removeEventListener("keydown", iniciarMusica);
+            document.removeEventListener("touchstart", iniciarMusica);
+            document.removeEventListener("mousemove", iniciarMusica);
+          })
+          .catch(() => {
+            // Navegador bloqueó, seguir intentando en próxima interacción
+          });
+      }
+    };
+
+    // Intentar reproducir inmediatamente
+    iniciarMusica();
+
+    // Agregar listeners para interacciones
+    document.addEventListener("click", iniciarMusica);
+    document.addEventListener("scroll", iniciarMusica);
+    document.addEventListener("keydown", iniciarMusica);
+    document.addEventListener("touchstart", iniciarMusica);
+    document.addEventListener("mousemove", iniciarMusica, { once: true });
+
+    return () => {
+      document.removeEventListener("click", iniciarMusica);
+      document.removeEventListener("scroll", iniciarMusica);
+      document.removeEventListener("keydown", iniciarMusica);
+      document.removeEventListener("touchstart", iniciarMusica);
+      document.removeEventListener("mousemove", iniciarMusica);
+    };
+  }, []);
+
   return (
     <div className="app-shell">
+      <audio
+        ref={audioRef}
+        src={musicaFondo}
+        loop
+        style={{ display: "none" }}
+      />
       <header className="topbar">
         <button
           className="brand"

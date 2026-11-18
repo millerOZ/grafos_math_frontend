@@ -12,6 +12,9 @@ const FloatingElements3D = lazy(() =>
 
 // El vapor del pan también usa three; se baja aparte para no frenar la primera pintura.
 const HumoPan = lazy(() => import('./HumoPan').then((m) => ({ default: m.HumoPan })));
+const HistoriaCarrusel = lazy(() =>
+  import('./HistoriaCarrusel').then((m) => ({ default: m.HistoriaCarrusel })),
+);
 
 const prefiereMenosMovimiento = () =>
   window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -31,7 +34,8 @@ const TICKER = [
 export function HomePage({ onNavigate, resumen }: HomePageProps) {
   const heroRef = useParallax<HTMLElement>(0.35);
   const bandaRef = useParallax<HTMLElement>(0.25);
-  const historiaRef = useParallax<HTMLDivElement>(0.12);
+  // El carrusel 3D se monta cuando la sección se asoma; antes no se descarga nada.
+  const [historiaRef, historiaVisible] = useReveal<HTMLDivElement>(0.05);
   const [conVapor] = useState(() => !prefiereMenosMovimiento());
 
   const irAVitrina = () =>
@@ -102,10 +106,12 @@ export function HomePage({ onNavigate, resumen }: HomePageProps) {
             Conocer nuestra historia
           </button>
         </div>
-        <div className="home-historia-fotos" ref={historiaRef} aria-hidden="true">
-          <div className="foto-recorte foto-croissant" />
-          <div className="foto-recorte foto-panal" />
-          <div className="foto-recorte foto-mermelada" />
+        <div className="home-historia-fotos" ref={historiaRef}>
+          {historiaVisible && (
+            <Suspense fallback={null}>
+              <HistoriaCarrusel />
+            </Suspense>
+          )}
         </div>
       </section>
 

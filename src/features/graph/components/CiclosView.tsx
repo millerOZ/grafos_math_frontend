@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { eliminarDependencia } from '../hooks/getProducts';
+import { eliminarDependencia, restaurarOrden } from '../hooks/getProducts';
 import type { Grafo, OrdenProduccionResponse } from '../types';
 
 interface CiclosViewProps {
@@ -27,6 +27,30 @@ export function CiclosView({ graph, orden, error, cargando, onGuardado, onOpenRe
   // Dependencia que se está quitando ("origen>destino") y resultado del último intento.
   const [quitando, setQuitando] = useState<string | null>(null);
   const [aviso, setAviso] = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null);
+  const [restaurando, setRestaurando] = useState(false);
+  const ocupado = quitando !== null || restaurando;
+
+  /** Quita de una vez las dependencias agregadas que forman ciclos (el back decide cuáles). */
+  const volverAlOrdenValido = async () => {
+    setRestaurando(true);
+    setAviso(null);
+    try {
+      const { quitadas, orden: nuevo } = await restaurarOrden();
+      const frases = quitadas.map((a) => `${nombre(a.origen)} ya no necesita ${nombre(a.destino)}`);
+      if (nuevo.caso === 'ciclo') {
+        setAviso({ tipo: 'error', texto: 'Sigue habiendo un ciclo entre dependencias iniciales: quítalo a mano.' });
+      } else {
+        setAviso({
+          tipo: 'ok',
+          texto: quitadas.length === 0 ? 'No había dependencias que quitar.' : `Orden válido otra vez: ${listar(frases)}.`,
+        });
+      }
+      if (quitadas.length > 0) await onGuardado();
+    } catch (err) {
+      setAviso({ tipo: 'error', texto: err instanceof Error ? err.message : 'No se pudo volver al orden válido.' });
+    }
+    setRestaurando(false);
+  };
 
   /** Quita "origen necesita destino". Si la relación se registró repetida, se quitan todas. */
   const quitar = async (origen: string, destino: string) => {
@@ -132,7 +156,7 @@ export function CiclosView({ graph, orden, error, cargando, onGuardado, onOpenRe
                 <button
                   className="ciclo-quitar"
                   type="button"
-                  disabled={quitando !== null}
+                  disabled={ocupado}
                   aria-label={`Quitar: ${nombre(id)} necesita ${nombre(requerido)}`}
                   onClick={() => void quitar(id, requerido)}
                 >
@@ -144,6 +168,18 @@ export function CiclosView({ graph, orden, error, cargando, onGuardado, onOpenRe
         </ul>
       ))}
       <p className="orden-ayuda">Quita la dependencia que sobra y el orden se recalcula.</p>
+      <button
+        className="ciclos-accion orden-restaurar"
+        type="button"
+        disabled={ocupado}
+        onClick={() => void volverAlOrdenValido()}
+      >
+        {restaurando ? 'Restaurando…' : 'Volver al orden válido'}
+      </button>
+      <p className="orden-ayuda">
+        Quita de una vez las dependencias entre pasos que se agregaron y forman el ciclo. No
+        borra proveedores, insumos ni productos.
+      </p>
       {bloqueados.length > 0 && (
         <p className="orden-bloqueo">
           Sin orden posible: <strong>{listar(bloqueados)}</strong>

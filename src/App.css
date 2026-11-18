@@ -759,3 +759,43 @@ h1 em { color: var(--tinta-suave); font-style: normal; }
 .como-se-calcula ol { padding-left: 18px; }
 .como-se-calcula li { margin: 3px 0; }
 .como-se-calcula-porque { padding-left: 10px; border-left: 2px solid var(--acento); color: var(--tinta-media); }
+.como-se-calcula-costo { color: var(--tinta-suave); font-size: 12.5px; }
+.orden-restaurar { align-self: flex-start; margin-top: 4px; }
+.orden-restaurar:disabled { opacity: .6; cursor: wait; }
+
+/* Botón de control de música de fondo */
+.boton-musica {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 100;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--linea);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 4px 12px rgba(84, 53, 26, 0.12);
+  cursor: pointer;
+  font-size: 20px;
+  display: grid;
+  place-items: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.boton-musica:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 16px rgba(84, 53, 26, 0.18);
+}
+.boton-musica:active {
+  transform: scale(0.96);
+}
+@media (max-width: 620px) {
+  .boton-musica {
+    width: 42px;
+    height: 42px;
+    bottom: 16px;
+    right: 16px;
+    font-size: 18px;
+  }
+}

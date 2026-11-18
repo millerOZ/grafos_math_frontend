@@ -6,6 +6,7 @@ import type {
   InsumoCreate,
   Nodo,
   OrdenProduccionResponse,
+  RestaurarOrdenResponse,
   ProcesoCreate,
   ProductoCreate,
   ProveedorCreate,
@@ -13,8 +14,8 @@ import type {
 import { createGraphDataSource } from "../services/graphService";
 
 // Para probar con el back local: crear .env.local con VITE_API_URL=http://127.0.0.1:8000
-//const API_URL = import.meta.env.VITE_API_URL ?? "https://grafos-math-back.onrender.com";
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = import.meta.env.VITE_API_URL ?? "https://grafos-math-back.onrender.com";
+//const API_URL = "http://127.0.0.1:8000";
 
 const graphApi = createGraphDataSource((...args) => fetch(...args), API_URL);
 
@@ -136,4 +137,18 @@ export async function eliminarDependencia(id: string): Promise<Arista> {
   }
 
   return (await response.json()) as Arista;
+}
+
+/**
+ * POST /orden-produccion/restaurar: quita solo las dependencias entre procesos
+ * agregadas después de los datos iniciales que forman un ciclo. El resto del
+ * catálogo no cambia, por eso no pide la clave del reinicio completo.
+ */
+export async function restaurarOrden(): Promise<RestaurarOrdenResponse> {
+  const response = await fetch(`${API_URL}/orden-produccion/restaurar`, { method: "POST" });
+  if (!response.ok) {
+    throw new Error(await getErrorDetail(response));
+  }
+
+  return (await response.json()) as RestaurarOrdenResponse;
 }

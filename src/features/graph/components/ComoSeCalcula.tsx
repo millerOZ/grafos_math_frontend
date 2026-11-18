@@ -25,6 +25,11 @@ export function ExplicacionImpacto() {
         camino que explica el "vía". Cada elemento se visita una sola vez, aunque le llegue la
         falla por dos caminos.
       </p>
+      <p className="como-se-calcula-costo">
+        <strong>Costo:</strong> O(V + E), proporcional a elementos (V) más dependencias (E).
+        La red se guarda como <em>lista de adyacencia</em> invertida (quién me requiere) y una
+        fila (cola) para avanzar por niveles.
+      </p>
     </details>
   );
 }
@@ -47,12 +52,17 @@ export function ExplicacionOrden() {
       <p>
         <strong>2. Ubicar el ciclo (algoritmo de Tarjan).</strong> Kahn dice que hay un ciclo
         pero no cuál. Tarjan agrupa los procesos desde los que se puede ir y volver siguiendo
-        las flechas: esos grupos son los ciclos (en rojo en el mapa).
+        las flechas: cada grupo contiene un ciclo, y su ciclo más corto se marca en rojo.
       </p>
       <p className="como-se-calcula-porque">
         <strong>Por qué sirve:</strong> separa los procesos que <em>forman</em> el ciclo de los
         que solo quedan bloqueados por él. Dentro de cada grupo se busca el ciclo más corto
         (BFS), que es la contradicción mínima: basta con quitar una de sus dependencias.
+      </p>
+      <p className="como-se-calcula-costo">
+        <strong>Costo:</strong> Kahn y Tarjan son O(V + E) cada uno sobre los procesos y sus
+        dependencias. Se usa una <em>lista de adyacencia</em> (qué requiere cada proceso), un
+        contador de pendientes por proceso y una pila para Tarjan.
       </p>
     </details>
   );

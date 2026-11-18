@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useRef, useState, type RefObject } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Line, OrbitControls, Text } from '@react-three/drei';
 import * as THREE from 'three';
 import type { Line2 } from 'three-stdlib';
 import type { Capa, Grafo, Nodo } from '../features/graph/types';
-import { ACTIVO, AFECTADO, CAPA_HOJA, CAPA_NODO, CICLO, HILO, TINTA, TINTA_SUAVE } from '../features/graph/paleta';
+import { ACTIVO, AFECTADO, CAPA_HOJA, CICLO, HILO, TINTA, TINTA_SUAVE } from '../features/graph/paleta';
 import { claveDependencia, type ResaltadoCiclo } from '../features/graph/domain/ordenVista';
 
 /**
@@ -333,6 +333,17 @@ function Onda({ nivel, movimiento, color = AFECTADO }: { nivel: number; movimien
   );
 }
 
+/** Colores de las conchas mexicanas por capa */
+const COLORES_CONCHA: Record<Capa, { base: string; cobertura: string; lineas: string }> = {
+  proveedor: { base: '#e8d4b8', cobertura: '#8b4513', lineas: '#6b3410' }, // Chocolate
+  insumo: { base: '#e8d4b8', cobertura: '#f5e6d3', lineas: '#d4c4a8' },    // Blanca/Vainilla
+  proceso: { base: '#e8d4b8', cobertura: '#e91e63', lineas: '#c2185b' },   // Rosa
+  producto: { base: '#e8d4b8', cobertura: '#ff9800', lineas: '#e65100' },  // Naranja/Durazno
+};
+
+/** Número de líneas decorativas en la concha */
+const LINEAS_CONCHA = 8;
+
 function Nodo3D({
   nodo, destino, activo, nivel, enCiclo, seleccionado, movimiento, posicionesRef, onSelect,
 }: {
@@ -349,30 +360,29 @@ function Nodo3D({
   onSelect: (id: string | null) => void;
 }) {
   const grupo = useRef<THREE.Group>(null);
-  const esfera = useRef<THREE.Mesh>(null);
-  const material = useRef<THREE.MeshStandardMaterial>(null);
+  const concha = useRef<THREE.Group>(null);
+  const materialCobertura = useRef<THREE.MeshStandardMaterial>(null);
   const escala = useRef(0);
   const [hover, setHover] = useState(false);
   const posicion = useMemo(() => new THREE.Vector3(), []);
   const colorDestino = useMemo(() => new THREE.Color(), []);
   const fase = useMemo(() => [...nodo.id].reduce((suma, c) => suma + c.charCodeAt(0), 0) % 7, [nodo.id]);
+  const colores = COLORES_CONCHA[nodo.capa];
 
   useEffect(() => {
     const mapa = posicionesRef.current;
     mapa.set(nodo.id, posicion);
     return () => {
       mapa.delete(nodo.id);
-      // Si el nodo desaparece bajo el puntero no llega el pointerOut.
       document.body.style.cursor = 'auto';
     };
   }, [nodo.id, posicion, posicionesRef]);
 
-  // Prioridad -1: los hilos leen la posición ya actualizada en este mismo frame.
   useFrame((state, delta) => {
-    if (!grupo.current || !esfera.current) return;
+    if (!grupo.current || !concha.current) return;
     const dt = pasoDe(delta, movimiento);
     if (destino) {
-      if (escala.current < 0.02) posicion.copy(destino); // entra en su lugar, sin cruzar el mapa
+      if (escala.current < 0.02) posicion.copy(destino);
       posicion.set(
         damp(posicion.x, destino.x, SUAVIDAD, dt),
         damp(posicion.y, destino.y, SUAVIDAD, dt),
@@ -385,15 +395,19 @@ function Nodo3D({
     grupo.current.visible = escala.current > 0.01;
 
     const tamano = activo || hover ? 1.14 : 1;
-    esfera.current.scale.setScalar(damp(esfera.current.scale.x, tamano, 8, dt));
-    esfera.current.position.z = movimiento ? Math.sin(state.clock.elapsedTime * 0.7 + fase) * 0.05 : 0;
-    if (material.current) {
-      colorDestino.set(activo ? ACTIVO : enCiclo ? CICLO : CAPA_NODO[nodo.capa]);
-      material.current.color.lerp(colorDestino, 1 - Math.exp(-6 * dt));
+    concha.current.scale.setScalar(damp(concha.current.scale.x, tamano, 8, dt));
+    concha.current.position.z = movimiento ? Math.sin(state.clock.elapsedTime * 0.7 + fase) * 0.05 : 0;
+    // Rotación suave de la concha
+    if (movimiento) {
+      concha.current.rotation.z += delta * 0.15;
+      concha.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.3 + fase) * 0.12;
+    }
+    if (materialCobertura.current) {
+      colorDestino.set(activo ? ACTIVO : enCiclo ? CICLO : colores.cobertura);
+      materialCobertura.current.color.lerp(colorDestino, 1 - Math.exp(-6 * dt));
     }
   }, -1);
 
-  // Un nodo que está saliendo ya no recibe clics: el clic cae al vacío y vuelve al mapa completo.
   const eventos = destino
     ? {
         onPointerOver: (e: { stopPropagation: () => void }) => {
@@ -412,12 +426,56 @@ function Nodo3D({
       }
     : {};
 
+  // Crear las líneas decorativas radiales
+  const lineas = useMemo(() => {
+    const resultado = [];
+    for (let i = 0; i < LINEAS_CONCHA; i++) {
+      const angulo = (i / LINEAS_CONCHA) * Math.PI * 2;
+      resultado.push(
+        <mesh
+          key={i}
+          position={[0, 0, RADIO_NODO * 0.52]}
+          rotation={[0, 0, angulo]}
+        >
+          {/* Línea curva desde el centro hacia el borde */}
+          <capsuleGeometry args={[RADIO_NODO * 0.04, RADIO_NODO * 0.75, 4, 8]} />
+          <meshStandardMaterial
+            color={colores.lineas}
+            roughness={0.8}
+            metalness={0}
+          />
+        </mesh>
+      );
+    }
+    return resultado;
+  }, [colores.lineas]);
+
   return (
     <group ref={grupo} visible={false}>
-      <mesh ref={esfera} castShadow {...eventos}>
-        <sphereGeometry args={[RADIO_NODO, 48, 32]} />
-        <meshStandardMaterial ref={material} color={CAPA_NODO[nodo.capa]} roughness={0.62} metalness={0} />
-      </mesh>
+      {/* Concha mexicana 3D */}
+      <group ref={concha} {...eventos}>
+        {/* Base del pan (semiesfera inferior) */}
+        <mesh castShadow position={[0, 0, -RADIO_NODO * 0.15]}>
+          <sphereGeometry args={[RADIO_NODO * 0.9, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2]} />
+          <meshStandardMaterial
+            color={colores.base}
+            roughness={0.85}
+            metalness={0}
+          />
+        </mesh>
+        {/* Cobertura decorada (semiesfera superior) */}
+        <mesh castShadow position={[0, 0, RADIO_NODO * 0.1]}>
+          <sphereGeometry args={[RADIO_NODO * 0.85, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2]} />
+          <meshStandardMaterial
+            ref={materialCobertura}
+            color={colores.cobertura}
+            roughness={0.7}
+            metalness={0.05}
+          />
+        </mesh>
+        {/* Líneas decorativas radiales */}
+        {lineas}
+      </group>
       {nivel !== undefined && <Onda key={seleccionado} nivel={nivel} movimiento={movimiento} />}
       {enCiclo && nivel === undefined && <Onda nivel={0} movimiento={movimiento} color={CICLO} />}
       <Text
@@ -624,20 +682,22 @@ function Escena({ grafo, visibles, seleccionado, niveles, ciclo, movimiento, onS
           <Hoja key={capa} capa={capa} rect={layout.hojas[capa]} movimiento={movimiento} />
         ))}
 
-        {grafo.nodos.map((n) => (
-          <Nodo3D
-            key={n.id}
-            nodo={n}
-            destino={layout.pos.get(n.id)}
-            activo={seleccionado === n.id}
-            nivel={niveles?.get(n.id)}
-            enCiclo={ciclo?.nodos.has(n.id) ?? false}
-            seleccionado={seleccionado}
-            movimiento={movimiento}
-            posicionesRef={posicionesRef}
-            onSelect={onSelect}
-          />
-        ))}
+        <Suspense fallback={null}>
+          {grafo.nodos.map((n) => (
+            <Nodo3D
+              key={n.id}
+              nodo={n}
+              destino={layout.pos.get(n.id)}
+              activo={seleccionado === n.id}
+              nivel={niveles?.get(n.id)}
+              enCiclo={ciclo?.nodos.has(n.id) ?? false}
+              seleccionado={seleccionado}
+              movimiento={movimiento}
+              posicionesRef={posicionesRef}
+              onSelect={onSelect}
+            />
+          ))}
+        </Suspense>
 
         {grafo.aristas.map((ar) => {
           if (ar.origen === ar.destino) return null;

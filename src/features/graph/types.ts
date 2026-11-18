@@ -60,6 +60,12 @@ export interface PlanProducto {
   bloqueado_por: number[];
 }
 
+/** POST /orden-produccion/restaurar: lo que se quitó y el orden que quedó. */
+export interface RestaurarOrdenResponse {
+  quitadas: Arista[];
+  orden: OrdenProduccionResponse;
+}
+
 export interface OrdenProduccionResponse {
   caso: CasoOrden;
   mensaje: string;

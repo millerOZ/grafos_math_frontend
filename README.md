@@ -129,6 +129,7 @@ Todas las llamadas están en `src/features/graph/hooks/getProducts.ts`.
 | `DELETE /dependencias/{id}` | Tabla de dependencias y botón "quitar" de la alerta de ciclo |
 | `GET /impacto/{id}` | Al elegir un elemento en la vista Impacto o escribir su id (y otra vez si el grafo cambia) |
 | `GET /orden-produccion` | Cada vez que cambia el grafo |
+| `POST /orden-produccion/restaurar` | Botón **Volver al orden válido** de la alerta de ciclo |
 | `POST /demo/reset` (header `X-Demo-Token`) | Botón **Reiniciar demo** |
 
 Cómo se interpretan las respuestas:

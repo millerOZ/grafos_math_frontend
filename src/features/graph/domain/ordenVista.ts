@@ -10,8 +10,8 @@ export interface ResaltadoCiclo {
 export const claveDependencia = (origen: string, destino: string) => `${origen}>${destino}`;
 
 /**
- * Nodos: `en_ciclo` del back (todos los procesos que forman algún ciclo, según
- * Tarjan) más los ids de cada ciclo reportado.
+ * Nodos: `en_ciclo` del back (los procesos de los ciclos reportados) más los
+ * ids de cada ciclo, por si alguno de los dos viene incompleto.
  * Aristas: cada ciclo viene como `ids` donde cada proceso requiere al siguiente
  * y el último al primero; de ahí salen las dependencias a resaltar.
  * Sin ciclos, null.

@@ -77,25 +77,28 @@
 
 /* ---------- Historia corta ---------- */
 .home-historia {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 6vw; align-items: center;
-  max-width: 1180px; margin: 0 auto; padding: 120px 6vw;
+  display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: 4vw; align-items: center;
+  max-width: 1240px; margin: 0 auto; padding: 120px 6vw;
 }
 .home-historia-texto p { max-width: 52ch; margin: 22px 0 0; color: var(--tinta-media); font-size: 17px; }
 .home-historia-texto .boton { margin-top: 32px; }
-.home-historia-fotos { position: relative; height: 520px; }
-.foto-recorte {
-  position: absolute; border-radius: 14px; background-image: url('/images/home-buffet.jpg');
-  background-repeat: no-repeat; box-shadow: 0 30px 60px -30px rgba(84, 53, 26, .45);
+.home-historia-fotos { position: relative; height: 580px; }
+
+/* Carrusel 3D (HistoriaCarrusel): el lienzo ocupa el alto y el pie nombra la foto. */
+.carrusel { display: flex; flex-direction: column; height: 100%; }
+.carrusel-lienzo {
+  flex: 1; min-height: 0; border-radius: 14px; cursor: grab;
+  touch-action: pan-y; /* el dedo en vertical sigue bajando la página; en horizontal gira */
+  -webkit-user-select: none; user-select: none;
 }
-.foto-croissant { top: 0; left: 6%; width: 64%; height: 62%; background-size: 240%; background-position: 56% 94%; }
-.foto-panal {
-  top: 30%; right: 0; width: 46%; height: 48%; background-size: 280%; background-position: 24% 48%;
-  transform: translate3d(0, calc(var(--parallax, 0px) * -1.4), 0);
+.carrusel-lienzo:active { cursor: grabbing; }
+.carrusel-lienzo.sobre-foto { cursor: pointer; }
+.carrusel-lienzo:focus-visible { outline: 2px solid var(--acento); outline-offset: 4px; }
+.carrusel-pie {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; gap: 4px 12px;
+  min-height: 1.65em; margin: 14px 0 0; color: var(--tinta-suave); font-size: 14px; text-align: center;
 }
-.foto-mermelada {
-  bottom: 0; left: 0; width: 42%; height: 34%; background-size: 330%; background-position: 70% 66%;
-  transform: translate3d(0, calc(var(--parallax, 0px) * 1.2), 0);
-}
+.carrusel-pie strong { color: var(--tinta); font-family: var(--serif); font-size: 19px; font-weight: 560; }
 
 /* ---------- Vitrina (tablero de precios) ---------- */
 .vitrina { max-width: 1060px; margin: 0 auto; padding: 40px 6vw 120px; scroll-margin-top: 90px; }
@@ -312,7 +315,7 @@
 /* ---------- Responsive ---------- */
 @media (max-width: 900px) {
   .home-historia, .historia-cronica { grid-template-columns: 1fr; padding-top: 80px; padding-bottom: 80px; }
-  .home-historia-fotos { height: 420px; }
+  .home-historia-fotos { height: 480px; }
   .home-hero-aviso { position: static; margin-top: 32px; }
   .detras { grid-template-columns: 1fr; padding-top: 300px; }
   .detras-escena { inset: 0 0 auto 0; height: 300px; }
@@ -328,7 +331,7 @@
 @media (max-width: 620px) {
   .home-hero { padding: 0 16px 48px; }
   .home-historia, .vitrina, .obrador, .testimonios, .valores, .visitanos-cabecera, .preguntas { padding-left: 16px; padding-right: 16px; }
-  .home-historia-fotos { height: 320px; }
+  .home-historia-fotos { height: 400px; }
   .vitrina-tablero { padding: 22px 18px 14px; }
   .vitrina-lista li { grid-template-columns: 1fr auto; }
   .vitrina-relleno { display: none; }
